@@ -15,7 +15,7 @@ public class WalkAgreementController {
     @Autowired
     private WalkAgreementMapper walkAgreementMapper;
 
-    // 创建新的 WalkAgreement
+    // Create WalkAgreement
     @PostMapping("/create")
     public String createWalkAgreement(@RequestBody WalkAgreement walkAgreement) {
         walkAgreement.setAgreementId(UUID.randomUUID().toString());
@@ -23,13 +23,13 @@ public class WalkAgreementController {
         return "WalkAgreement created successfully!";
     }
 
-    // 获取特定 WalkAgreement
+    // Get WalkAgreement
     @GetMapping("/{id}")
     public WalkAgreement getWalkAgreementById(@PathVariable("id") String agreementId) {
         return walkAgreementMapper.selectById(agreementId);
     }
 
-    // 获取所有 WalkAgreement
+    // Get all WalkAgreement
     @GetMapping("/all")
     public List<WalkAgreement> getAllWalkAgreements() {
         return walkAgreementMapper.selectList(null);

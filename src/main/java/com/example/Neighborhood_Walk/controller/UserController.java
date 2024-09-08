@@ -2,11 +2,15 @@ package com.example.Neighborhood_Walk.controller;
 
 import com.example.Neighborhood_Walk.Mapper.AddressMapper;
 import com.example.Neighborhood_Walk.Mapper.UserMapper;
+import com.example.Neighborhood_Walk.Mapper.UserVerificationMapper;
 import com.example.Neighborhood_Walk.entity.Address;
 import com.example.Neighborhood_Walk.entity.User;
+import com.example.Neighborhood_Walk.entity.UserVerification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,6 +23,9 @@ public class UserController {
 
     @Autowired
     private AddressMapper addressMapper;
+
+    @Autowired
+    private UserVerificationMapper userVerificationMapper;
 
     @PostMapping("/register")
     public String registerUser(@RequestBody User user) {
@@ -43,7 +50,22 @@ public class UserController {
 
         // save data into database
         userMapper.insert(user);
-        return "User registered successfully!";
+
+
+        // save email information in UserVerification table，status is Unverified
+        UserVerification userVerification = new UserVerification();
+        userVerification.setVerificationId(UUID.randomUUID().toString());
+        userVerification.setUserId(user.getUserId());
+        userVerification.setVerificationType("email");
+        userVerification.setVerificationStatus("Unverified");
+        userVerification.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
+        userVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
+
+
+        // save email into UserVerification table
+        userVerificationMapper.insert(userVerification);
+
+        return "User registered successfully, email verification pending.";
     }
 
     @GetMapping("/all")
@@ -88,6 +110,17 @@ public class UserController {
             return "User deleted successfully!";
         } else {
             return "User not found.";
+        }
+    }
+
+    @PostMapping("/emailverify")
+    public String verifyUser(@RequestParam String email, @RequestParam String code) {
+        String storedCode = userMapper.getVerificationCodeByEmail(email);
+        if (storedCode != null && storedCode.equals(code)) {
+            userMapper.updateUserStatus(email, true);
+            return "验证成功！";
+        } else {
+            return "验证失败，验证码错误。";
         }
     }
 

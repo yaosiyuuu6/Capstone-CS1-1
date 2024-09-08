@@ -20,6 +20,7 @@ public class UserVerification {
     private Timestamp verificationDate;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private String information;
 
     // Getter and Setter methods
 
@@ -78,4 +79,6 @@ public class UserVerification {
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+
 }
