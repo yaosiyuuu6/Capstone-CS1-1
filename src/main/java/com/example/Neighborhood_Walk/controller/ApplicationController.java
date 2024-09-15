@@ -28,7 +28,19 @@ public class ApplicationController {
     public Application getApplicationById(@PathVariable("id") String applicationId) {
         return applicationMapper.selectById(applicationId);
     }
+    
+    //根据walker获取申请
+    @GetMapping("/{walker_id}")
+    public Application getApplicationByWalker(@PathVariable("walker_id") String walker_id) {
+        return applicationMapper.findByWalker(walker_id);
+    }
 
+    //根据request获取申请
+    @GetMapping("/{request_id}")
+    public Application getApplicationByRequest(@PathVariable("request_id") String request_id) {
+        return applicationMapper.findByRequest(request_id);
+    }
+    
     // 获取所有申请
     @GetMapping("/all")
     public List<Application> getAllApplications() {
