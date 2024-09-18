@@ -47,6 +47,14 @@ We can provide any cloud services or
 development tools if required.
 The students need to find a dataset.
 
+**后端文件解释
+
+对于每个function有三个java文件,一个与数据表有相同结构的实体类；一个映射器（Mapper）；一个Controller。
+1. Java 实体类：例如创建一个 PreMeeting 类，该类具有与数据库中 Premeeting 表的每个字段相对应的属性，还包括一些基本的变量Set和Get方法。
+2. 创建映射器： 创建一个扩展 BaseMapper 的接口 MeetingMapper，用于对数据库进行 CRUD，BaseMapper 可以提供一些基本的 CRUD 方法，为特殊情况需要自定义一些方法。
+3. 控制器： 创建控制器与映射器交互，对指定表执行 CRUD 操作，并为这些操作生成 Resful api 端点。
+
+
 ## Project member
 * Chenkai Yao,530695260,cyao0459@uni.sydney.edu.au
 * Ke Zhang,520280368,kzha0502@uni.sydney.edu.au
