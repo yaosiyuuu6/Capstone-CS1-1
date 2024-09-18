@@ -1,6 +1,6 @@
 package com.example.Neighborhood_Walk;
 
-import ClickSend.ApiClient;
+
 import org.json.JSONException;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Value;

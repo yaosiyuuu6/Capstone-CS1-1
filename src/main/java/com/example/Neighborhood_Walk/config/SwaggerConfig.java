@@ -24,7 +24,7 @@ public class SwaggerConfig {
     private ApiInfo apiInfo(){
         return new ApiInfoBuilder()
                 .title("ProjectAPI")
-                .description("项目")
+                .description("CS1-1 Project")
                 .version("1.0")
                 .build();
     }

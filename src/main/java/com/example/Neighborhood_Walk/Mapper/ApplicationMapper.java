@@ -3,6 +3,7 @@ package com.example.Neighborhood_Walk.Mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.Neighborhood_Walk.entity.Application;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 
 @Mapper
 public interface ApplicationMapper extends BaseMapper<Application> {

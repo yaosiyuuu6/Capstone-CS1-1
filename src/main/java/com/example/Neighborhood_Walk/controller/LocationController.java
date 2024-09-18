@@ -4,6 +4,7 @@ import com.example.Neighborhood_Walk.Mapper.LocationMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -22,8 +23,15 @@ import com.example.Neighborhood_Walk.entity.Location;
 @RequestMapping("/location")
 public class LocationController {
 
-    private static final String GOOGLE_API_URL = "https://www.googleapis.com/geolocation/v1/geolocate?key=AIzaSyA0fLshO4Iv8VyhI2Cn3Px14AAIbCTseJc";
+    @Value("${google.api.key}")
+    private String googleApiKey;
 
+    private static final String GOOGLE_API_URL = "https://www.googleapis.com/geolocation/v1/geolocate?key=";
+
+    // 获取完整的 Google API URL
+    public String getGoogleApiUrl() {
+        return GOOGLE_API_URL + googleApiKey;
+    }
     @Autowired
     private LocationMapper locationMapper;
 
@@ -44,7 +52,7 @@ public class LocationController {
             HttpEntity<String> entity = new HttpEntity<>(headers);
 
             // 发起请求并获取响应
-            ResponseEntity<String> response = restTemplate.exchange(GOOGLE_API_URL, HttpMethod.POST, entity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(getGoogleApiUrl(), HttpMethod.POST, entity, String.class);
 
             // 使用ObjectMapper解析JSON响应
             ObjectMapper mapper = new ObjectMapper();
