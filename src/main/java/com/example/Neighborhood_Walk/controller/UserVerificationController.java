@@ -6,6 +6,7 @@ import com.example.Neighborhood_Walk.entity.User;
 import com.example.Neighborhood_Walk.entity.UserVerification;
 import com.example.Neighborhood_Walk.Mapper.UserVerificationMapper;
 import com.example.Neighborhood_Walk.service.EmailService;
+import com.example.Neighborhood_Walk.service.SmsService;
 import com.example.Neighborhood_Walk.util.VerificationCodeGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +28,9 @@ public class UserVerificationController {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private SmsService smsService;
 
     // Create UserVerification
     @PostMapping("/create")
@@ -78,7 +82,7 @@ public class UserVerificationController {
     /**
      * 发送验证码到邮箱并保存到数据库
      */
-    @PostMapping("/send-verification-code")
+    @PostMapping("/send-verification-code-email")
     public String sendVerificationCode(@RequestParam String email) {
         System.out.println("Received request to send verification code to email: " + email);
 
@@ -170,6 +174,103 @@ public class UserVerificationController {
 
         return "Email verified successfully!";
     }
+
+
+    /**
+     * Send verification code to phone and save to database
+     */
+    @PostMapping("/send-verification-code-phone")
+    public String sendVerificationCodeToPhone(@RequestParam String phoneNumber) {
+        System.out.println("Received request to send verification code to phone: " + phoneNumber);
+
+        // Check if user exists with the phone number
+        User user = userMapper.selectOne(new QueryWrapper<User>().eq("phone_number", phoneNumber));
+        if (user == null) {
+            System.out.println("No user found with phone: " + phoneNumber);
+            return "Phone number not registered.";
+        }
+        System.out.println("User found: " + user.getUserId());
+
+        // Check if there is an existing UserVerification record
+        UserVerification userVerification = userVerificationMapper.selectOne(
+                new QueryWrapper<UserVerification>()
+                        .eq("user_id", user.getUserId())
+                        .eq("verification_type", "phone")
+        );
+
+        if (userVerification == null) {
+            // If not, create a new UserVerification record
+            System.out.println("No existing verification record found, creating a new one.");
+            userVerification = new UserVerification();
+            userVerification.setVerificationId(UUID.randomUUID().toString());
+            userVerification.setUserId(user.getUserId());
+            userVerification.setVerificationType("phone");
+            userVerification.setVerificationStatus("Unverified");
+            userVerification.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
+            userVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
+        } else {
+            System.out.println("Existing verification record found: " + userVerification.getVerificationId());
+        }
+
+        // Generate verification code and save to information field
+        String verificationCode = VerificationCodeGenerator.generateVerificationCode();
+        System.out.println("Generated verification code: " + verificationCode);
+        userVerification.setInformation(verificationCode);
+        userVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
+
+        // Insert or update UserVerification record
+        if (userVerification.getVerificationId() == null || userVerificationMapper.selectById(userVerification.getVerificationId()) == null) {
+            System.out.println("Inserting new verification record for user: " + user.getUserId());
+            userVerificationMapper.insert(userVerification);
+            System.out.println("Verification record inserted.");
+        } else {
+            System.out.println("Updating existing verification record: " + userVerification.getVerificationId());
+            userVerificationMapper.updateById(userVerification);
+            System.out.println("Verification record updated.");
+        }
+
+        // Send verification code via SMS
+        smsService.sendSms(phoneNumber, "Your verification code is: " + verificationCode);
+        System.out.println("Verification code sent to phone: " + phoneNumber);
+
+        return "Verification code sent successfully!";
+    }
+
+    @PostMapping("/verify-phone")
+    public String verifyPhone(@RequestParam String phoneNumber, @RequestParam String code) {
+        // Check if user exists with the phone number
+        User user = userMapper.selectOne(new QueryWrapper<User>().eq("phone_number", phoneNumber));
+        if (user == null) {
+            return "Phone number not registered.";
+        }
+
+        // Check for existing verification record
+        UserVerification userVerification = userVerificationMapper.selectOne(
+                new QueryWrapper<UserVerification>()
+                        .eq("user_id", user.getUserId())
+                        .eq("verification_type", "phone")
+        );
+
+        if (userVerification == null) {
+            return "No verification record found.";
+        }
+
+        // Validate the verification code
+        if (!userVerification.getInformation().equals(code)) {
+            return "Invalid verification code.";
+        }
+
+        // Update verification status to 'Verified'
+        userVerification.setVerificationStatus("Verified");
+        userVerification.setVerificationDate(Timestamp.valueOf(LocalDateTime.now()));
+        userVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
+
+        // Save the updated verification record
+        userVerificationMapper.updateById(userVerification);
+
+        return "Phone verified successfully!";
+    }
+
 
 
 

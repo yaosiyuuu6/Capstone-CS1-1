@@ -29,48 +29,89 @@ public class UserController {
 
     @PostMapping("/register")
     public String registerUser(@RequestBody User user) {
-        // check email and password not null
-        if (user.getEmail() == null || user.getPassword() == null) {
-            return "Email and password are required.";
+        // Check that at least one of email or phone number is provided
+        if ((user.getEmail() == null || user.getEmail().isEmpty()) &&
+                (user.getPhoneNumber() == null || user.getPhoneNumber().isEmpty())) {
+            return "Email or phone number is required.";
         }
 
-        // check email registered
-        User existingUser = userMapper.findByEmail(user.getEmail());
-        if (existingUser != null) {
-            return "Email is already registered.";
+        // Check if the password is provided
+        if (user.getPassword() == null) {
+            return "Password is required.";
         }
 
-        // check addressId exist
+        // Check if email is already registered and verified
+        if (user.getEmail() != null) {
+            User existingUser = userMapper.findByEmail(user.getEmail());
+            if (existingUser != null) {
+                UserVerification emailVerification = userVerificationMapper.findByUserIdAndType(existingUser.getUserId(), "email");
+                if (emailVerification != null && "Verified".equals(emailVerification.getVerificationStatus())) {
+                    return "Email is already registered and verified.";
+                }
+            }
+        }
+
+        // Check if phone is already registered and verified
+        if (user.getPhoneNumber() != null) {
+            User existingUserByPhone = userMapper.findByPhone(user.getPhoneNumber());
+            if (existingUserByPhone != null) {
+                UserVerification phoneVerification = userVerificationMapper.findByUserIdAndType(existingUserByPhone.getUserId(), "phone");
+                if (phoneVerification != null && "Verified".equals(phoneVerification.getVerificationStatus())) {
+                    return "Phone is already registered and verified.";
+                }
+            }
+        }
+
+
+        // Check if the addressId exists
         Address existingAddress = addressMapper.selectById(user.getAddressId());
         if (existingAddress == null) {
             return "Address not saved. Please save the address first.";
         }
-        // set userid
+
+        // Set user ID
         user.setUserId(UUID.randomUUID().toString());
 
-        // save data into database
+        // Save user data to the database
         userMapper.insert(user);
 
+        // Email verification logic
+        if (user.getEmail() != null) {
+            UserVerification emailVerification = new UserVerification();
+            emailVerification.setVerificationId(UUID.randomUUID().toString());
+            emailVerification.setUserId(user.getUserId());
+            emailVerification.setVerificationType("email");
+            emailVerification.setVerificationStatus("Unverified");
+            emailVerification.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
+            emailVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
+            userVerificationMapper.insert(emailVerification);
+        }
 
-        // save email information in UserVerification table，status is Unverified
-        UserVerification userVerification = new UserVerification();
-        userVerification.setVerificationId(UUID.randomUUID().toString());
-        userVerification.setUserId(user.getUserId());
-        userVerification.setVerificationType("email");
-        userVerification.setVerificationStatus("Unverified");
-        userVerification.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
-        userVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
+        // Phone verification logic
+        if (user.getPhoneNumber() != null) {
+            UserVerification phoneVerification = new UserVerification();
+            phoneVerification.setVerificationId(UUID.randomUUID().toString());
+            phoneVerification.setUserId(user.getUserId());
+            phoneVerification.setVerificationType("phone");
+            phoneVerification.setVerificationStatus("Unverified");
+            phoneVerification.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
+            phoneVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
+            userVerificationMapper.insert(phoneVerification);
+        }
 
-
-        // save email into UserVerification table
-        userVerificationMapper.insert(userVerification);
-
-        return "User registered successfully, email verification pending.";
+        return "User registered successfully. Email and/or phone verification pending.";
     }
+
 
     @GetMapping("/all")
     public List<User> getAllUsers() {
         return userMapper.selectList(null);  // selectList(null) 将返回所有用户
+    }
+
+    // get all walkers
+    @GetMapping("/get_allwalker")
+    public List<User> getAllWalkers() {
+        return userMapper.getAllWalkers();
     }
 
     @GetMapping("/{id}")
