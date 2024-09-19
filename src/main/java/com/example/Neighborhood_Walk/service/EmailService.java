@@ -17,7 +17,8 @@ public class EmailService {
         message.setFrom("Communea@outlook.com");
         message.setTo(toEmail);
         message.setSubject("Email Verification - Communea");
-        message.setText("Thanks for registration. Please use the following code to finish e-mail verification: " + token);
+        message.setText("Thanks for registration. Please use the following code to finish e-mail verification: " + token
+                + "\n\n" + "If you did not register, please ignore this email." +"The registration code is valid for 5 minutes."+ "\n\n" + "Best Regards," + "\n" + "Communea Team");
         mailSender.send(message);
     }
 }

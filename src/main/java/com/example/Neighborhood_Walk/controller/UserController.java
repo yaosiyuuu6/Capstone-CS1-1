@@ -1,11 +1,13 @@
 package com.example.Neighborhood_Walk.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.Neighborhood_Walk.Mapper.AddressMapper;
 import com.example.Neighborhood_Walk.Mapper.UserMapper;
 import com.example.Neighborhood_Walk.Mapper.UserVerificationMapper;
 import com.example.Neighborhood_Walk.entity.Address;
 import com.example.Neighborhood_Walk.entity.User;
 import com.example.Neighborhood_Walk.entity.UserVerification;
+import com.example.Neighborhood_Walk.service.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,80 +29,68 @@ public class UserController {
     @Autowired
     private UserVerificationMapper userVerificationMapper;
 
+    @Autowired
+    private RedisService redisService;
+
     @PostMapping("/register")
     public String registerUser(@RequestBody User user) {
-        // Check that at least one of email or phone number is provided
-        if ((user.getEmail() == null || user.getEmail().isEmpty()) &&
-                (user.getPhoneNumber() == null || user.getPhoneNumber().isEmpty())) {
-            return "Email or phone number is required.";
+        // 检查至少一种联系方式已验证
+        // Ensure at least one contact method is verified
+        if (!Boolean.TRUE.equals(redisService.isVerified(user.getEmail())) &&
+                !Boolean.TRUE.equals(redisService.isVerified(user.getPhoneNumber()))) {
+            return "At least one contact method must be verified."; // 至少一种联系方式需验证
         }
 
+        // 检查密码是否提供
         // Check if the password is provided
-        if (user.getPassword() == null) {
-            return "Password is required.";
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
+            return "Password is required."; // 需要提供密码
         }
 
-        // Check if email is already registered and verified
-        if (user.getEmail() != null) {
-            User existingUser = userMapper.findByEmail(user.getEmail());
-            if (existingUser != null) {
-                UserVerification emailVerification = userVerificationMapper.findByUserIdAndType(existingUser.getUserId(), "email");
-                if (emailVerification != null && "Verified".equals(emailVerification.getVerificationStatus())) {
-                    return "Email is already registered and verified.";
-                }
-            }
-        }
+//        // 检查地址是否存在
+//        // Check if the address exists
+//        Address existingAddress = addressMapper.selectById(user.getAddressId());
+//        if (existingAddress == null) {
+//            return "Address not saved. Please save the address first."; // 地址未保存
+//        }
 
-        // Check if phone is already registered and verified
-        if (user.getPhoneNumber() != null) {
-            User existingUserByPhone = userMapper.findByPhone(user.getPhoneNumber());
-            if (existingUserByPhone != null) {
-                UserVerification phoneVerification = userVerificationMapper.findByUserIdAndType(existingUserByPhone.getUserId(), "phone");
-                if (phoneVerification != null && "Verified".equals(phoneVerification.getVerificationStatus())) {
-                    return "Phone is already registered and verified.";
-                }
-            }
-        }
-
-
-        // Check if the addressId exists
-        Address existingAddress = addressMapper.selectById(user.getAddressId());
-        if (existingAddress == null) {
-            return "Address not saved. Please save the address first.";
-        }
-
-        // Set user ID
+        // 生成用户ID并保存用户信息
+        // Generate user ID and save user information
         user.setUserId(UUID.randomUUID().toString());
-
-        // Save user data to the database
         userMapper.insert(user);
 
-        // Email verification logic
-        if (user.getEmail() != null) {
+        // 持久化用户验证记录到数据库
+        // Persist user verification records to the database
+        if (Boolean.TRUE.equals(redisService.isVerified(user.getEmail()))) {
             UserVerification emailVerification = new UserVerification();
             emailVerification.setVerificationId(UUID.randomUUID().toString());
             emailVerification.setUserId(user.getUserId());
             emailVerification.setVerificationType("email");
-            emailVerification.setVerificationStatus("Unverified");
+            emailVerification.setVerificationStatus("Verified");
             emailVerification.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
             emailVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
             userVerificationMapper.insert(emailVerification);
         }
 
-        // Phone verification logic
-        if (user.getPhoneNumber() != null) {
+        if (Boolean.TRUE.equals(redisService.isVerified(user.getPhoneNumber()))) {
             UserVerification phoneVerification = new UserVerification();
             phoneVerification.setVerificationId(UUID.randomUUID().toString());
             phoneVerification.setUserId(user.getUserId());
             phoneVerification.setVerificationType("phone");
-            phoneVerification.setVerificationStatus("Unverified");
+            phoneVerification.setVerificationStatus("Verified");
             phoneVerification.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
             phoneVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
             userVerificationMapper.insert(phoneVerification);
         }
 
-        return "User registered successfully. Email and/or phone verification pending.";
+        // 清除 Redis 中的验证状态
+        // Clear the verification data from Redis
+        redisService.clearVerificationData(user.getEmail());
+        redisService.clearVerificationData(user.getPhoneNumber());
+
+        return "User registered successfully!";
     }
+
 
 
     @GetMapping("/all")
@@ -112,6 +102,24 @@ public class UserController {
     @GetMapping("/get_allwalker")
     public List<User> getAllWalkers() {
         return userMapper.getAllWalkers();
+    }
+
+    // get all parents
+    @GetMapping("/get_allparent")
+    public List<User> getAllParents() {
+        return userMapper.getAllParents();
+    }
+
+    // get all admins
+    @GetMapping("/get_alladmin")
+    public List<User> getAllAdmins() {
+        return userMapper.getAllAdmins();
+    }
+
+    // get all users with both walker and parent
+    @GetMapping("/get_allboth")
+    public List<User> getAllBoth() {
+        return userMapper.getAllBoth();
     }
 
     @GetMapping("/{id}")
@@ -154,16 +162,50 @@ public class UserController {
         }
     }
 
-    @PostMapping("/emailverify")
-    public String verifyUser(@RequestParam String email, @RequestParam String code) {
-        String storedCode = userMapper.getVerificationCodeByEmail(email);
-        if (storedCode != null && storedCode.equals(code)) {
-            userMapper.updateUserStatus(email, true);
-            return "验证成功！";
+
+    /**
+     * 登录接口
+     * Login API
+     */
+    @PostMapping("/login")
+    public String login(@RequestParam String account, @RequestParam String password) {
+        // 判断账号是邮箱还是手机号
+        // Determine whether the account is an email or phone number
+        User user = null;
+        if (account.contains("@")) {
+            // 通过邮箱登录
+            // Login using email
+            user = userMapper.selectOne(new QueryWrapper<User>().eq("email", account));
         } else {
-            return "验证失败，验证码错误。";
+            // 假设手机号是澳大利亚号码，格式为"04"开头，后跟8位数字
+            // Assume the phone number is Australian, starting with "04" and followed by 8 digits
+            if (account.matches("^04\\d{8}$")) {
+                // 通过手机号登录
+                // Login using phone number
+                user = userMapper.selectOne(new QueryWrapper<User>().eq("phone_number", account));
+            } else {
+                return "Invalid phone number format. Please use a valid Australian phone number.";
+            }
         }
+
+        // 如果用户不存在
+        // If the user does not exist
+        if (user == null) {
+            return "User not found.";
+        }
+
+        // 检查密码是否匹配
+        // Check if the password matches
+        if (!user.getPassword().equals(password)) {
+            return "Incorrect password.";
+        }
+
+        // 登录成功，返回用户ID
+        // Login successful, return the user ID
+        return "Login successful. User ID: " + user.getUserId();
     }
+
+
 
 
 }

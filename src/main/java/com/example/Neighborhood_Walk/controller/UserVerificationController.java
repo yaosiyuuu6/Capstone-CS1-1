@@ -6,6 +6,7 @@ import com.example.Neighborhood_Walk.entity.User;
 import com.example.Neighborhood_Walk.entity.UserVerification;
 import com.example.Neighborhood_Walk.Mapper.UserVerificationMapper;
 import com.example.Neighborhood_Walk.service.EmailService;
+import com.example.Neighborhood_Walk.service.RedisService;
 import com.example.Neighborhood_Walk.service.SmsService;
 import com.example.Neighborhood_Walk.util.VerificationCodeGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class UserVerificationController {
 
     @Autowired
     private SmsService smsService;
+
+    @Autowired
+    private RedisService redisService;
 
     // Create UserVerification
     @PostMapping("/create")
@@ -79,62 +83,39 @@ public class UserVerificationController {
         }
     }
 
-    /**
-     * 发送验证码到邮箱并保存到数据库
-     */
     @PostMapping("/send-verification-code-email")
     public String sendVerificationCode(@RequestParam String email) {
-        System.out.println("Received request to send verification code to email: " + email);
+        // 查询是否有用户已注册该邮箱并通过验证
+        // Check if any user has already registered and verified this email
+        User existingUser = userMapper.selectOne(new QueryWrapper<User>().eq("email", email));
 
-        // 查询用户是否存在
-        User user = userMapper.selectOne(new QueryWrapper<User>().eq("email", email));
-        if (user == null) {
-            System.out.println("No user found with email: " + email);
-            return "Email not registered.";
-        }
-        System.out.println("User found: " + user.getUserId());
+        if (existingUser != null) {
+            // 查询该用户的邮箱验证状态
+            // Check if the user's email verification status
+            UserVerification emailVerification = userVerificationMapper.selectOne(
+                    new QueryWrapper<UserVerification>()
+                            .eq("user_id", existingUser.getUserId())
+                            .eq("verification_type", "email")
+            );
 
-        // 查询是否已有 UserVerification 记录
-        UserVerification userVerification = userVerificationMapper.selectOne(
-                new QueryWrapper<UserVerification>()
-                        .eq("user_id", user.getUserId())
-                        .eq("verification_type", "email")
-        );
-
-        if (userVerification == null) {
-            // 如果不存在，创建一个新的UserVerification记录
-            System.out.println("No existing verification record found, creating a new one.");
-            userVerification = new UserVerification();
-            userVerification.setVerificationId(UUID.randomUUID().toString());
-            userVerification.setUserId(user.getUserId());
-            userVerification.setVerificationType("email");
-            userVerification.setVerificationStatus("Unverified");
-            userVerification.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
-            userVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
-        } else {
-            System.out.println("Existing verification record found: " + userVerification.getVerificationId());
+            // 如果邮箱已被验证，拒绝发送验证码
+            // If the email is already verified, reject sending verification code
+            if (emailVerification != null && "Verified".equals(emailVerification.getVerificationStatus())) {
+                return "Email is already registered and verified."; // 邮箱已被注册且验证
+            }
         }
 
-        // 生成验证码并保存到 information 字段
+        // 生成验证码
+        // Generate a verification code
         String verificationCode = VerificationCodeGenerator.generateVerificationCode();
-        System.out.println("Generated verification code: " + verificationCode);
-        userVerification.setInformation(verificationCode);
-        userVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
 
-        // 更新或插入 UserVerification 记录
-        if (userVerification.getVerificationId() == null || userVerificationMapper.selectById(userVerification.getVerificationId()) == null) {
-            System.out.println("Inserting new verification record for user: " + user.getUserId());
-            userVerificationMapper.insert(userVerification);
-            System.out.println("Verification record inserted.");
-        } else {
-            System.out.println("Updating existing verification record: " + userVerification.getVerificationId());
-            userVerificationMapper.updateById(userVerification);
-            System.out.println("Verification record updated.");
-        }
+        // 将验证码保存到 Redis，有效期为5分钟
+        // Store the verification code in Redis with a 5-minute expiration
+        redisService.storeVerificationCode(email, verificationCode);
 
         // 发送验证码到邮箱
+        // Send the verification code to the email
         emailService.sendVerificationEmail(email, verificationCode);
-        System.out.println("Verification code sent to email: " + email);
 
         return "Verification code sent successfully!";
     }
@@ -142,134 +123,218 @@ public class UserVerificationController {
 
     @PostMapping("/verify-email")
     public String verifyEmail(@RequestParam String email, @RequestParam String code) {
-        // 查询用户是否存在
-        User user = userMapper.selectOne(new QueryWrapper<User>().eq("email", email));
-        if (user == null) {
-            return "Email not registered.";
+        // 从 Redis 获取验证码
+        // Get the verification code from Redis
+        String cachedCode = redisService.getVerificationCode(email);
+
+        // 验证码是否过期或无效
+        // Check if the verification code has expired or is invalid
+        if (cachedCode == null) {
+            return "Verification code has expired or is invalid.";
         }
 
-        // 查询用户的验证记录
-        UserVerification userVerification = userVerificationMapper.selectOne(
-                new QueryWrapper<UserVerification>()
-                        .eq("user_id", user.getUserId())
-                        .eq("verification_type", "email")
-        );
-
-        if (userVerification == null) {
-            return "No verification record found.";
-        }
-
-        // 验证验证码
-        if (!userVerification.getInformation().equals(code)) {
+        // 验证码是否正确
+        // Check if the verification code is correct
+        if (!cachedCode.equals(code)) {
             return "Invalid verification code.";
         }
 
-        // 更新验证状态为已验证
-        userVerification.setVerificationStatus("Verified");
-        userVerification.setVerificationDate(Timestamp.valueOf(LocalDateTime.now()));
-        userVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
-
-        // 保存更新后的记录
-        userVerificationMapper.updateById(userVerification);
+        // 验证成功，将验证状态标记为已验证
+        // Verification successful, mark as verified
+        redisService.markAsVerified(email);
 
         return "Email verified successfully!";
     }
 
 
-    /**
-     * Send verification code to phone and save to database
-     */
+
     @PostMapping("/send-verification-code-phone")
     public String sendVerificationCodeToPhone(@RequestParam String phoneNumber) {
-        System.out.println("Received request to send verification code to phone: " + phoneNumber);
+        // 查询是否有用户已注册该手机号并通过验证
+        // Check if any user has already registered and verified this phone number
+        User existingUser = userMapper.selectOne(new QueryWrapper<User>().eq("phone_number", phoneNumber));
 
-        // Check if user exists with the phone number
-        User user = userMapper.selectOne(new QueryWrapper<User>().eq("phone_number", phoneNumber));
-        if (user == null) {
-            System.out.println("No user found with phone: " + phoneNumber);
-            return "Phone number not registered.";
-        }
-        System.out.println("User found: " + user.getUserId());
+        if (existingUser != null) {
+            // 查询该用户的手机号验证状态
+            // Check if the user's phone number verification status
+            UserVerification phoneVerification = userVerificationMapper.selectOne(
+                    new QueryWrapper<UserVerification>()
+                            .eq("user_id", existingUser.getUserId())
+                            .eq("verification_type", "phone")
+            );
 
-        // Check if there is an existing UserVerification record
-        UserVerification userVerification = userVerificationMapper.selectOne(
-                new QueryWrapper<UserVerification>()
-                        .eq("user_id", user.getUserId())
-                        .eq("verification_type", "phone")
-        );
-
-        if (userVerification == null) {
-            // If not, create a new UserVerification record
-            System.out.println("No existing verification record found, creating a new one.");
-            userVerification = new UserVerification();
-            userVerification.setVerificationId(UUID.randomUUID().toString());
-            userVerification.setUserId(user.getUserId());
-            userVerification.setVerificationType("phone");
-            userVerification.setVerificationStatus("Unverified");
-            userVerification.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
-            userVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
-        } else {
-            System.out.println("Existing verification record found: " + userVerification.getVerificationId());
+            // 如果手机号已被验证，拒绝发送验证码
+            // If the phone number is already verified, reject sending verification code
+            if (phoneVerification != null && "Verified".equals(phoneVerification.getVerificationStatus())) {
+                return "Phone number is already registered and verified."; // 手机号已被注册且验证
+            }
         }
 
-        // Generate verification code and save to information field
+        // 生成验证码
+        // Generate a verification code
         String verificationCode = VerificationCodeGenerator.generateVerificationCode();
-        System.out.println("Generated verification code: " + verificationCode);
-        userVerification.setInformation(verificationCode);
-        userVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
 
-        // Insert or update UserVerification record
-        if (userVerification.getVerificationId() == null || userVerificationMapper.selectById(userVerification.getVerificationId()) == null) {
-            System.out.println("Inserting new verification record for user: " + user.getUserId());
-            userVerificationMapper.insert(userVerification);
-            System.out.println("Verification record inserted.");
-        } else {
-            System.out.println("Updating existing verification record: " + userVerification.getVerificationId());
-            userVerificationMapper.updateById(userVerification);
-            System.out.println("Verification record updated.");
-        }
+        // 将验证码保存到 Redis，有效期为5分钟
+        // Store the verification code in Redis with a 5-minute expiration
+        redisService.storeVerificationCode(phoneNumber, verificationCode);
 
-        // Send verification code via SMS
-        smsService.sendSms(phoneNumber, "Your verification code is: " + verificationCode);
-        System.out.println("Verification code sent to phone: " + phoneNumber);
+        // 发送验证码到手机
+        // Send the verification code to the phone
+        smsService.sendSms(phoneNumber, "Your verification code is: " + verificationCode + ". This code will expire in 5 minutes.");
 
         return "Verification code sent successfully!";
     }
 
+
     @PostMapping("/verify-phone")
     public String verifyPhone(@RequestParam String phoneNumber, @RequestParam String code) {
-        // Check if user exists with the phone number
-        User user = userMapper.selectOne(new QueryWrapper<User>().eq("phone_number", phoneNumber));
-        if (user == null) {
-            return "Phone number not registered.";
+        // 从 Redis 获取验证码
+        // Get the verification code from Redis
+        String cachedCode = redisService.getVerificationCode(phoneNumber);
+
+        // 验证码是否过期或无效
+        // Check if the verification code has expired or is invalid
+        if (cachedCode == null) {
+            return "Verification code has expired or is invalid."; // 验证码已过期或无效
         }
 
-        // Check for existing verification record
-        UserVerification userVerification = userVerificationMapper.selectOne(
-                new QueryWrapper<UserVerification>()
-                        .eq("user_id", user.getUserId())
-                        .eq("verification_type", "phone")
-        );
-
-        if (userVerification == null) {
-            return "No verification record found.";
+        // 验证码是否正确
+        // Check if the verification code is correct
+        if (!cachedCode.equals(code)) {
+            return "Invalid verification code."; // 验证码不正确
         }
 
-        // Validate the verification code
-        if (!userVerification.getInformation().equals(code)) {
-            return "Invalid verification code.";
-        }
-
-        // Update verification status to 'Verified'
-        userVerification.setVerificationStatus("Verified");
-        userVerification.setVerificationDate(Timestamp.valueOf(LocalDateTime.now()));
-        userVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
-
-        // Save the updated verification record
-        userVerificationMapper.updateById(userVerification);
+        // 验证成功，将验证状态标记为已验证
+        // Verification successful, mark as verified
+        redisService.markAsVerified(phoneNumber);
 
         return "Phone verified successfully!";
     }
+
+
+    /**
+     * 更新用户验证信息 (绑定新邮箱或手机号)
+     * Update user verification information (bind new email or phone)
+     */
+    @PostMapping("/update-verification-sendcode")
+    public String updateVerification(@RequestParam String userId,
+                                     @RequestParam String newContact,
+                                     @RequestParam String contactType) {
+
+        // 检查新联系方式是否已被其他用户注册和验证
+        // Check if the new contact is already registered and verified by another user
+        if ("email".equals(contactType)) {
+            User existingUser = userMapper.selectOne(new QueryWrapper<User>().eq("email", newContact));
+            if (existingUser != null) {
+                return "The email is already in use by another user.";
+            }
+        } else if ("phone".equals(contactType)) {
+            User existingUserByPhone = userMapper.selectOne(new QueryWrapper<User>().eq("phone_number", newContact));
+            if (existingUserByPhone != null) {
+                return "The phone number is already in use by another user.";
+            }
+        }
+
+        // 查询用户是否存在
+        // Check if the user exists
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            return "User does not exist.";
+        }
+
+        // 生成新的验证码
+        // Generate a new verification code
+        String verificationCode = VerificationCodeGenerator.generateVerificationCode();
+
+        // 将验证码存储到 Redis 中，过期时间为5分钟
+        // Store the verification code in Redis with an expiration time of 5 minutes
+        redisService.storeVerificationCode(userId + ":" + contactType, verificationCode);
+
+        // 根据联系方式类型发送验证码
+        // Send verification code based on contact type
+        if ("email".equals(contactType)) {
+            emailService.sendVerificationEmail(newContact, verificationCode);
+            return "Verification code has been sent to your new email.";
+        } else if ("phone".equals(contactType)) {
+            smsService.sendSms(newContact, "Your verification code is: " + verificationCode + ". This code will expire in 5 minutes.");
+            return "Verification code has been sent to your new phone number.";
+        }
+
+        return "Invalid contact type.";
+    }
+
+    /**
+     * 验证新的联系方式并更新
+     * Verify the new contact information and update
+     */
+    @PostMapping("/verify-update")
+    public String verifyUpdate(@RequestParam String userId,
+                               @RequestParam String contactType,
+                               @RequestParam String verificationCode,
+                               @RequestParam String newContact) {
+
+        // 从 Redis 获取验证码
+        // Retrieve the verification code from Redis
+        String storedCode = redisService.getVerificationCode(userId + ":" + contactType);
+
+        if (storedCode == null) {
+            return "Verification code expired or not found.";
+        }
+
+        // 验证用户输入的验证码是否正确
+        // Check if the verification code matches
+        if (!storedCode.equals(verificationCode)) {
+            return "Invalid verification code.";
+        }
+
+        // 验证成功后，更新用户的联系方式
+        // After successful verification, update the user's contact information
+        User user = userMapper.selectById(userId);
+        if ("email".equals(contactType)) {
+            user.setEmail(newContact);
+        } else if ("phone".equals(contactType)) {
+            user.setPhoneNumber(newContact);
+        }
+
+        userMapper.updateById(user);
+
+        // 检查是否已经有这个用户的验证记录
+        // Check if the user already has a verification record for this type
+        UserVerification existingVerification = userVerificationMapper.selectOne(
+                new QueryWrapper<UserVerification>()
+                        .eq("user_id", userId)
+                        .eq("verification_type", contactType)
+        );
+
+        // 如果不存在，则插入新的验证记录
+        // If no record exists, insert a new verification record
+        if (existingVerification == null) {
+            UserVerification newVerification = new UserVerification();
+            newVerification.setVerificationId(UUID.randomUUID().toString());
+            newVerification.setUserId(userId);
+            newVerification.setVerificationType(contactType);
+            newVerification.setVerificationStatus("Verified");
+            newVerification.setInformation(newContact);
+            newVerification.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
+            newVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
+            userVerificationMapper.insert(newVerification);
+        } else {
+            // 如果记录存在，更新验证状态和新的联系方式
+            // If record exists, update verification status and the new contact info
+            existingVerification.setVerificationStatus("Verified");
+            existingVerification.setInformation(newContact);
+            existingVerification.setVerificationDate(Timestamp.valueOf(LocalDateTime.now()));
+            existingVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
+            userVerificationMapper.updateById(existingVerification);
+        }
+
+        // 清除 Redis 中的验证码
+        // Clear the verification code from Redis
+        redisService.clearVerificationData(userId + ":" + contactType);
+
+        return "Contact information updated successfully.";
+    }
+
 
 
 

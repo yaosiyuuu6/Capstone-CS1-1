@@ -24,8 +24,21 @@ public interface UserMapper extends BaseMapper<User> {
     void updateUserStatus(@Param("email") String email, @Param("status") boolean status);
 
     //get all users which are walkers
-    @Select("SELECT * FROM Users WHERE user_type = 'walker'")
+    @Select("SELECT * FROM Users WHERE user_type IN ('Walker', 'Both')")
     List<User> getAllWalkers();
 
+
+    //get all users which are parent
+    @Select("SELECT * FROM Users WHERE user_type IN ('Parent', 'Both')")
+    List<User> getAllParents();
+
+
+    //get all users which are admin
+    @Select("SELECT * FROM Users WHERE user_type = 'Admin'")
+    List<User> getAllAdmins();
+
+    //get all users which are both walker and parent
+    @Select("SELECT * FROM Users WHERE user_type = 'Both'")
+    List<User> getAllBoth();
 
 }
