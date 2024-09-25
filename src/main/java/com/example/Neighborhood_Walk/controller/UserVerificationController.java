@@ -104,7 +104,6 @@ public class UserVerificationController {
                 return "Email is already registered and verified."; // 邮箱已被注册且验证
             }
         }
-
         // 生成验证码
         // Generate a verification code
         String verificationCode = VerificationCodeGenerator.generateVerificationCode();
@@ -119,7 +118,6 @@ public class UserVerificationController {
 
         return "Verification code sent successfully!";
     }
-
 
     @PostMapping("/verify-email")
     public String verifyEmail(@RequestParam String email, @RequestParam String code) {

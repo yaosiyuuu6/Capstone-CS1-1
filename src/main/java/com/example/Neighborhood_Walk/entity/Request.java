@@ -12,7 +12,7 @@ public class Request {
     @TableId
     private String requestId;
     private String parentId;
-    private String childName;
+    private String childId;
     private String pickupAddressId;
     private String dropoffAddressId;
     private String walkDate;
@@ -41,11 +41,11 @@ public class Request {
     }
 
     public String getChildName() {
-        return childName;
+        return childId;
     }
 
-    public void setChildName(String childName) {
-        this.childName = childName;
+    public void setChildName(String childId) {
+        this.childId = childId;
     }
 
     public String getPickupAddress() {
@@ -105,11 +105,11 @@ public class Request {
     }
 
 
-    public Request(String requestId, String parentId, String childName, String pickupAddressId, String dropoffAddressId,
+    public Request(String requestId, String parentId, String childId, String pickupAddressId, String dropoffAddressId,
                    String walkDate, String walkTime, String recurrence, String status, String description) {
         this.requestId = requestId;
         this.parentId = parentId;
-        this.childName = childName;
+        this.childId = childId;
         this.pickupAddressId = pickupAddressId;
         this.dropoffAddressId = dropoffAddressId;
         this.walkDate = walkDate;
