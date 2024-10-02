@@ -18,6 +18,7 @@ public class User {
     private String dateOfBirth;
     private String communicationPreference;
     private String userType;
+    private String description;
 
     // Getters and Setters
     public String getUserId() {
@@ -108,7 +109,7 @@ public class User {
         this.userType = userType;
     }
 
-    public User(String userId, String firstName, String lastName, String preferredName, String password, String email, String phoneNumber, String addressId, String dateOfBirth, String communicationPreference, String userType) {
+    public User(String userId, String firstName, String lastName, String preferredName, String password, String email, String phoneNumber, String addressId, String dateOfBirth, String communicationPreference, String userType, String description) {
         this.userId = userId;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -120,6 +121,7 @@ public class User {
         this.dateOfBirth = dateOfBirth;
         this.communicationPreference = communicationPreference;
         this.userType = userType;
+        this.description = description;
     }
 
     public User() {

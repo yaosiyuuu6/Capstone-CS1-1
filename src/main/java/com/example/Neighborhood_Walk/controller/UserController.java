@@ -88,7 +88,7 @@ public class UserController {
         redisService.clearVerificationData(user.getEmail());
         redisService.clearVerificationData(user.getPhoneNumber());
 
-        return "User registered successfully!";
+        return "User registered successfully! UserID: " + user.getUserId();
     }
 
 
