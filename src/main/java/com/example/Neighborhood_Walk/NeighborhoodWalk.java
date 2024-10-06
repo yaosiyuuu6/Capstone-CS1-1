@@ -9,6 +9,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 
 import java.io.IOException;
@@ -16,7 +17,7 @@ import java.text.ParseException;
 
 @SpringBootApplication
 @MapperScan("com.example.Neighborhood_Walk.Mapper")
-
+@EnableScheduling
 public class NeighborhoodWalk {
 
 
