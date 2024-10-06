@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,8 +23,13 @@ public class ShareLocationService {
     @Autowired
     private ShareLocationMapper shareLocationMapper;
 
+//    @Autowired
+//    private RedisTemplate<String, String> redisTemplate;
+
     @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    @Qualifier("stringRedisTemplate")  // 注入配置中的 stringRedisTemplate
+    private RedisTemplate<String, String> stringRedisTemplate;
+
 
     // 创建 ObjectMapper 对象，用于序列化和反序列化
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -34,13 +40,13 @@ public class ShareLocationService {
     // 每 1 分钟执行一次定时任务
     @Scheduled(fixedRate = 60000)  // 每 1 分钟执行一次
     public void syncLocationsToDatabase() {
-        Set<String> keys = redisTemplate.keys("location:*");
+        Set<String> keys = stringRedisTemplate.keys("location:*");
 
         if (keys != null && !keys.isEmpty()) {
             for (String key : keys) {
                 try {
                     // 从 Redis 中读取位置信息的 JSON 字符串
-                    Set<String> locationDataSet = redisTemplate.opsForZSet().range(key, 0, -1);
+                    Set<String> locationDataSet = stringRedisTemplate.opsForZSet().range(key, 0, -1);
 
                     // 提取 key 中的 walkerId 和 agreementId
                     String[] keyParts = key.split(":");
@@ -59,7 +65,7 @@ public class ShareLocationService {
                     }
 
                     // 可选：清除 Redis 中已经同步到数据库的位置信息
-                    redisTemplate.delete(key);
+                    stringRedisTemplate.delete(key);
 
                 } catch (Exception e) {
                     logger.error("Error syncing location data to database", e);
@@ -75,7 +81,7 @@ public class ShareLocationService {
 
         try {
             // 将位置信息存入 Redis
-            redisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(shareLocation));
+            stringRedisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(shareLocation));
             logger.info("Location data for agreementId {} saved to Redis.", shareLocation.getAgreementId());
         } catch (Exception e) {
             logger.error("Error saving location data to Redis for agreementId {}", shareLocation.getAgreementId(), e);
@@ -103,4 +109,25 @@ public class ShareLocationService {
             updateLocationTrackingData(agreementIds.get(i), trackingDataList.get(i));
         }
     }
+
+    // 从 Redis 中获取最新的 walker 位置信息
+    public String getLatestLocationFromRedis(String walkerId, String agreementId) {
+        logger.info("Attempting to retrieve latest location from Redis for walkerId: {}, agreementId: {}", walkerId, agreementId);
+        String key = "location:" + walkerId + ":" + agreementId;
+        Set<String> locationDataSet = stringRedisTemplate.opsForZSet().range(key, -1, -1); // 获取最新的一条记录
+        if (locationDataSet != null && !locationDataSet.isEmpty()) {
+            return locationDataSet.iterator().next(); // 获取最新位置的 JSON 字符串
+        }
+        return null;
+    }
+
+    // 从数据库中获取最新的 walker 位置信息
+    public String getLatestLocationFromDatabase(String walkerId, String agreementId) {
+        ShareLocation latestLocation = shareLocationMapper.getLatestLocation(walkerId, agreementId);
+        if (latestLocation != null) {
+            return latestLocation.getTrackingData(); // 获取 trackingData
+        }
+        return null;
+    }
+
 }
