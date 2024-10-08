@@ -3,6 +3,8 @@ package com.example.Neighborhood_Walk.entity;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
+import java.math.BigDecimal;
+
 @TableName("Addresses")
 public class Address {
     @TableId
@@ -14,6 +16,27 @@ public class Address {
     private String state;
     private String postcode;
     private String country;
+
+    private BigDecimal latitude;   // 添加纬度字段
+    private BigDecimal longitude;  // 添加经度字段
+
+    // 省略其他getter、setter和构造方法
+
+    public BigDecimal getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(BigDecimal latitude) {
+        this.latitude = latitude;
+    }
+
+    public BigDecimal getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(BigDecimal longitude) {
+        this.longitude = longitude;
+    }
 
     // Getters and Setters
     public String getAddressId() {

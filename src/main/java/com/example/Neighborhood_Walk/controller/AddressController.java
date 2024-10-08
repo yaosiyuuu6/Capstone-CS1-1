@@ -1,7 +1,9 @@
 package com.example.Neighborhood_Walk.controller;
 
 import com.example.Neighborhood_Walk.Mapper.AddressMapper;
+import com.example.Neighborhood_Walk.dto.Coordinates;
 import com.example.Neighborhood_Walk.entity.Address;
+import com.example.Neighborhood_Walk.service.GeocodingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +16,12 @@ public class AddressController {
     @Autowired
     private AddressMapper addressMapper;
 
+    @Autowired
+    private GeocodingService geocodingService;
+
     @PostMapping("/save")
     public String saveAddress(@RequestBody Address address) {
-        // check address exits or not
+        // 检查地址是否已存在
         Address existingAddress = addressMapper.findByDetails(
                 address.getAddressLine1(),
                 address.getAddressLine2(),
@@ -27,15 +32,36 @@ public class AddressController {
         );
 
         if (existingAddress != null) {
-            // if address exist
+            // 如果地址已存在，返回现有的 addressId
             return existingAddress.getAddressId();
         } else {
-            // if address not exist then insert
+            // 如果地址不存在，反解析地址获取经纬度
+            if (address.getLatitude() == null || address.getLongitude() == null) {
+                // 调用 geocodingService 来获取坐标
+                Coordinates coordinates = geocodingService.reverseGeocode(
+                        address.getAddressLine1() + " " +
+                                address.getAddressLine2() + " " +
+                                address.getCity() + " " +
+                                address.getState() + " " +
+                                address.getPostcode() + " " +
+                                address.getCountry()
+                );
+
+                // 将获取到的经纬度填入 address 对象中
+                address.setLatitude(coordinates.getLatitude());
+                address.setLongitude(coordinates.getLongitude());
+            }
+
+            // 生成一个新的 UUID 作为 addressId
             address.setAddressId(UUID.randomUUID().toString());
+            // 插入新地址
             addressMapper.insert(address);
+
+            // 返回新地址的 addressId
             return address.getAddressId();
         }
     }
+
 
     //Get address by id
     @GetMapping("/{id}")
