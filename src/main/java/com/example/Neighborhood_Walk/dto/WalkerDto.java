@@ -5,7 +5,7 @@ public class WalkerDto {
     private String name;
     private double distance;
     private String description;
-    private String addressId; // 添加 addressId 属性
+    private String addressId;
 
     // Getters and Setters
     public String getWalkerId() {

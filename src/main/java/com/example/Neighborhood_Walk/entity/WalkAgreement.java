@@ -16,14 +16,13 @@ public class WalkAgreement {
 
     private String requestId;
     private String walkerId;
-    private Timestamp startTime;
-    private Timestamp endTime;
+    private String startTime;
+    private String endTime;
     private String trackingData;  // JSON type as String in Java
     private String status;
     private Integer ratingValue;
     private String comments;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
+
 
     // Getter and Setter methods
 
@@ -51,19 +50,19 @@ public class WalkAgreement {
         this.walkerId = walkerId;
     }
 
-    public Timestamp getStartTime() {
+    public String getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(Timestamp startTime) {
+    public void setStartTime(String startTime) {
         this.startTime = startTime;
     }
 
-    public Timestamp getEndTime() {
+    public String getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(Timestamp endTime) {
+    public void setEndTime(String endTime) {
         this.endTime = endTime;
     }
 
@@ -99,20 +98,5 @@ public class WalkAgreement {
         this.comments = comments;
     }
 
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Timestamp getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 }
 

@@ -220,7 +220,6 @@ public class UserController {
         if (parentAddress == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-        System.out.println("Parent address: " + parentAddress);
 
         // 2. 在地址表中根据距离筛选出符合要求的地址ID
         List<String> nearbyAddressIds = addressService.getNearbyAddressIds(
@@ -234,16 +233,36 @@ public class UserController {
         List<WalkerDto> nearbyWalkers = userMapper.findWalkersByAddressIds(nearbyAddressIds, parentAddress.getLatitude().doubleValue(),
                 parentAddress.getLongitude().doubleValue());
 
-//        for (WalkerDto walker : nearbyWalkers) {
-//            Address walkerAddress = addressMapper.findAddressById(walker.getAddressId());
-//            double distance = calculateDistance(
-//                    parentAddress.getLatitude().doubleValue(),
-//                    parentAddress.getLongitude().doubleValue(),
-//                    walkerAddress.getLatitude().doubleValue(),
-//                    walkerAddress.getLongitude().doubleValue()
-//            );
-//            walker.setDistance(distanc c ve);  // 这里将计算后的距离保存到 WalkerDto 实例中
-//        }
+
+        // 按距离从近到远排序
+        nearbyWalkers.sort(Comparator.comparingDouble(WalkerDto::getDistance));
+
+        return ResponseEntity.ok(nearbyWalkers);
+    }
+
+    @GetMapping("/nearby-parentss")
+    public ResponseEntity<List<WalkerDto>> getNearbyParents(
+            @RequestParam String userId,
+            @RequestParam double rangeInKm) {
+
+        // 1. 获取用户的地址经纬度
+        Address walkerAddress = userService.getUserAddressByUserId(userId);
+        if (walkerAddress == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        // 2. 在地址表中根据距离筛选出符合要求的地址ID
+        List<String> nearbyAddressIds = addressService.getNearbyAddressIds(
+                walkerAddress.getLatitude(),
+                walkerAddress.getLongitude(),
+                rangeInKm
+        );
+
+
+        // 3. 在用户表中找到类型为walker并且匹配地址ID的用户
+        List<WalkerDto> nearbyWalkers = userMapper.findParentsByAddressIds(nearbyAddressIds, walkerAddress.getLatitude().doubleValue(),
+                walkerAddress.getLongitude().doubleValue());
+
 
         // 按距离从近到远排序
         nearbyWalkers.sort(Comparator.comparingDouble(WalkerDto::getDistance));
