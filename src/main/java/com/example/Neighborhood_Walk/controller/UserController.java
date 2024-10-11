@@ -4,15 +4,21 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.Neighborhood_Walk.Mapper.AddressMapper;
 import com.example.Neighborhood_Walk.Mapper.UserMapper;
 import com.example.Neighborhood_Walk.Mapper.UserVerificationMapper;
+import com.example.Neighborhood_Walk.dto.WalkerDto;
 import com.example.Neighborhood_Walk.entity.Address;
 import com.example.Neighborhood_Walk.entity.User;
 import com.example.Neighborhood_Walk.entity.UserVerification;
+import com.example.Neighborhood_Walk.service.AddressService;
 import com.example.Neighborhood_Walk.service.RedisService;
+import com.example.Neighborhood_Walk.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,6 +38,12 @@ public class UserController {
     @Autowired
     private RedisService redisService;
 
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private AddressService addressService;
+
     @PostMapping("/register")
     public String registerUser(@RequestBody User user) {
         // 检查至少一种联系方式已验证
@@ -46,13 +58,6 @@ public class UserController {
         if (user.getPassword() == null || user.getPassword().isEmpty()) {
             return "Password is required."; // 需要提供密码
         }
-
-//        // 检查地址是否存在
-//        // Check if the address exists
-//        Address existingAddress = addressMapper.selectById(user.getAddressId());
-//        if (existingAddress == null) {
-//            return "Address not saved. Please save the address first."; // 地址未保存
-//        }
 
         // 生成用户ID并保存用户信息
         // Generate user ID and save user information
@@ -205,7 +210,44 @@ public class UserController {
         return "Login successful. User ID: " + user.getUserId();
     }
 
+    @GetMapping("/nearby-walkers")
+    public ResponseEntity<List<WalkerDto>> getNearbyWalkers(
+            @RequestParam String userId,
+            @RequestParam double rangeInKm) {
+
+        // 1. 获取用户的地址经纬度
+        Address parentAddress = userService.getUserAddressByUserId(userId);
+        if (parentAddress == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        System.out.println("Parent address: " + parentAddress);
+
+        // 2. 在地址表中根据距离筛选出符合要求的地址ID
+        List<String> nearbyAddressIds = addressService.getNearbyAddressIds(
+                parentAddress.getLatitude(),
+                parentAddress.getLongitude(),
+                rangeInKm
+        );
 
 
+        // 3. 在用户表中找到类型为walker并且匹配地址ID的用户
+        List<WalkerDto> nearbyWalkers = userMapper.findWalkersByAddressIds(nearbyAddressIds, parentAddress.getLatitude().doubleValue(),
+                parentAddress.getLongitude().doubleValue());
 
+//        for (WalkerDto walker : nearbyWalkers) {
+//            Address walkerAddress = addressMapper.findAddressById(walker.getAddressId());
+//            double distance = calculateDistance(
+//                    parentAddress.getLatitude().doubleValue(),
+//                    parentAddress.getLongitude().doubleValue(),
+//                    walkerAddress.getLatitude().doubleValue(),
+//                    walkerAddress.getLongitude().doubleValue()
+//            );
+//            walker.setDistance(distanc c ve);  // 这里将计算后的距离保存到 WalkerDto 实例中
+//        }
+
+        // 按距离从近到远排序
+        nearbyWalkers.sort(Comparator.comparingDouble(WalkerDto::getDistance));
+
+        return ResponseEntity.ok(nearbyWalkers);
+    }
 }

@@ -73,4 +73,15 @@ public class ChildrenController {
         int result = childrenMapper.deleteById(id);
         return result > 0 ? "Child deleted successfully" : "Failed to delete child";
     }
+
+    /**
+     * 根据家长ID获取孩子信息
+     * Get a child's information by parent ID
+     * @param parentId 家长的ID / Parent's ID
+     * @return 孩子的详细信息 / Child details
+     */
+    @GetMapping("/parent/{parentId}")
+    public List<Children> getChildrenByParentId(@PathVariable("parentId") String parentId) {
+        return childrenMapper.findChildrenByParentId(parentId);
+    }
 }

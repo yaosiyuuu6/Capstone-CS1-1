@@ -109,6 +109,14 @@ public class User {
         this.userType = userType;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description ;
+    }
+
     public User(String userId, String firstName, String lastName, String preferredName, String password, String email, String phoneNumber, String addressId, String dateOfBirth, String communicationPreference, String userType, String description) {
         this.userId = userId;
         this.firstName = firstName;
