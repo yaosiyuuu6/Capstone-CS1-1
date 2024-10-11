@@ -1,7 +1,7 @@
 package com.example.Neighborhood_Walk.Mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.example.Neighborhood_Walk.dto.WalkerDto;
+import com.example.Neighborhood_Walk.dto.UserDto;
 import com.example.Neighborhood_Walk.entity.Address;
 import com.example.Neighborhood_Walk.entity.User;
 import org.apache.ibatis.annotations.*;
@@ -52,8 +52,9 @@ public interface UserMapper extends BaseMapper<User> {
 
     // 根据 addressIds 和 user_type 查找 walker 用户
     @Select("<script>"
-            + "SELECT u.user_id AS walkerId, u.first_name AS name, u.last_name AS lastName, u.description, u.address_id AS addressId, "
-            + "ST_Distance_Sphere(POINT(#{longitude}, #{latitude}), POINT(a.longitude, a.latitude)) AS distance "
+            + "SELECT u.user_id AS userId, u.first_name AS name, u.last_name AS lastName, u.description, u.address_id AS addressId, "
+            + "ST_Distance_Sphere(POINT(#{longitude}, #{latitude}), POINT(a.longitude, a.latitude)) AS distance, "
+            + "TIMESTAMPDIFF(YEAR, u.date_of_birth, CURDATE()) AS age "
             + "FROM Users u "
             + "JOIN Addresses a ON u.address_id = a.address_id "
             + "WHERE u.address_id IN "
@@ -62,24 +63,27 @@ public interface UserMapper extends BaseMapper<User> {
             + "</foreach> "
             + "AND u.user_type = 'walker' "
             + "</script>")
-    List<WalkerDto> findWalkersByAddressIds(@Param("addressIds") List<String> addressIds,
+    List<UserDto> findWalkersByAddressIds(@Param("addressIds") List<String> addressIds,
                                             @Param("latitude") double latitude,
                                             @Param("longitude") double longitude);
 
+
     @Select("<script>"
-            + "SELECT u.user_id AS walkerId, u.first_name AS name, u.last_name AS lastName, u.description, u.address_id AS addressId, "
-            + "ST_Distance_Sphere(POINT(#{longitude}, #{latitude}), POINT(a.longitude, a.latitude)) AS distance "
+            + "SELECT u.user_id AS userId, u.first_name AS name, u.last_name AS lastName, u.description, u.address_id AS addressId, "
+            + "ST_Distance_Sphere(POINT(#{longitude}, #{latitude}), POINT(a.longitude, a.latitude)) AS distance, "
+            + "TIMESTAMPDIFF(YEAR, u.date_of_birth, CURDATE()) AS age "
             + "FROM Users u "
             + "JOIN Addresses a ON u.address_id = a.address_id "
             + "WHERE u.address_id IN "
             + "<foreach item='addressId' collection='addressIds' open='(' separator=',' close=')'>"
             + "#{addressId}"
             + "</foreach> "
-            + "AND u.user_type = 'Parent' "
+            + "AND u.user_type = 'walker' "
             + "</script>")
-    List<WalkerDto> findParentsByAddressIds(@Param("addressIds") List<String> addressIds,
+    List<UserDto> findParentsByAddressIds(@Param("addressIds") List<String> addressIds,
                                             @Param("latitude") double latitude,
                                             @Param("longitude") double longitude);
+
 
 
 

@@ -4,7 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.Neighborhood_Walk.Mapper.AddressMapper;
 import com.example.Neighborhood_Walk.Mapper.UserMapper;
 import com.example.Neighborhood_Walk.Mapper.UserVerificationMapper;
-import com.example.Neighborhood_Walk.dto.WalkerDto;
+import com.example.Neighborhood_Walk.dto.UserDto;
+
 import com.example.Neighborhood_Walk.entity.Address;
 import com.example.Neighborhood_Walk.entity.User;
 import com.example.Neighborhood_Walk.entity.UserVerification;
@@ -211,7 +212,7 @@ public class UserController {
     }
 
     @GetMapping("/nearby-walkers")
-    public ResponseEntity<List<WalkerDto>> getNearbyWalkers(
+    public ResponseEntity<List<UserDto>> getNearbyWalkers(
             @RequestParam String userId,
             @RequestParam double rangeInKm) {
 
@@ -230,18 +231,18 @@ public class UserController {
 
 
         // 3. 在用户表中找到类型为walker并且匹配地址ID的用户
-        List<WalkerDto> nearbyWalkers = userMapper.findWalkersByAddressIds(nearbyAddressIds, parentAddress.getLatitude().doubleValue(),
+        List<UserDto> nearbyWalkers = userMapper.findWalkersByAddressIds(nearbyAddressIds, parentAddress.getLatitude().doubleValue(),
                 parentAddress.getLongitude().doubleValue());
 
 
         // 按距离从近到远排序
-        nearbyWalkers.sort(Comparator.comparingDouble(WalkerDto::getDistance));
+        nearbyWalkers.sort(Comparator.comparingDouble(UserDto::getDistance));
 
         return ResponseEntity.ok(nearbyWalkers);
     }
 
-    @GetMapping("/nearby-parentss")
-    public ResponseEntity<List<WalkerDto>> getNearbyParents(
+    @GetMapping("/nearby-parents")
+    public ResponseEntity<List<UserDto>> getNearbyParents(
             @RequestParam String userId,
             @RequestParam double rangeInKm) {
 
@@ -260,13 +261,13 @@ public class UserController {
 
 
         // 3. 在用户表中找到类型为walker并且匹配地址ID的用户
-        List<WalkerDto> nearbyWalkers = userMapper.findParentsByAddressIds(nearbyAddressIds, walkerAddress.getLatitude().doubleValue(),
+        List<UserDto> nearbyParents = userMapper.findParentsByAddressIds(nearbyAddressIds, walkerAddress.getLatitude().doubleValue(),
                 walkerAddress.getLongitude().doubleValue());
 
 
         // 按距离从近到远排序
-        nearbyWalkers.sort(Comparator.comparingDouble(WalkerDto::getDistance));
+        nearbyParents.sort(Comparator.comparingDouble(UserDto::getDistance));
 
-        return ResponseEntity.ok(nearbyWalkers);
+        return ResponseEntity.ok(nearbyParents);
     }
 }

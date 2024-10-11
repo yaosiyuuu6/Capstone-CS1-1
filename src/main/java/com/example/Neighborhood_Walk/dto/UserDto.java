@@ -1,19 +1,28 @@
 package com.example.Neighborhood_Walk.dto;
 
-public class WalkerDto {
-    private String walkerId;
+public class UserDto {
+    private String userId;
     private String name;
     private double distance;
     private String description;
     private String addressId;
+    private int age;
 
     // Getters and Setters
-    public String getWalkerId() {
-        return walkerId;
+    public int getAge() {
+        return age;
     }
 
-    public void setWalkerId(String walkerId) {
-        this.walkerId = walkerId;
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String walkerId) {
+        this.userId = walkerId;
     }
 
     public String getName() {
