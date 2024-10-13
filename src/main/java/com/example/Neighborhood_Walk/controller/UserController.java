@@ -21,6 +21,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -208,7 +209,7 @@ public class UserController {
 
         // 登录成功，返回用户ID
         // Login successful, return the user ID
-        return "Login successful. User ID: " + user.getUserId();
+        return "Login successful. User ID: " + user.getUserId() + " User Type: " + user.getUserType();
     }
 
     @GetMapping("/nearby-walkers")
@@ -269,5 +270,35 @@ public class UserController {
         nearbyParents.sort(Comparator.comparingDouble(UserDto::getDistance));
 
         return ResponseEntity.ok(nearbyParents);
+    }
+
+    // 更新用户密码的 API
+    @PutMapping("/{userId}/password")
+    public ResponseEntity<String> updatePassword(
+            @PathVariable String userId,
+            @RequestBody Map<String, String> request) {
+
+        String oldPassword = request.get("oldPassword");
+        String newPassword = request.get("newPassword");
+
+        // 根据 userId 查找用户
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
+
+        // 验证旧密码是否正确
+        if (!user.getPassword().equals(oldPassword)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Old password is incorrect.");
+        }
+
+        // 更新密码
+        user.setPassword(newPassword);
+        int rows = userMapper.updateById(user);
+        if (rows > 0) {
+            return ResponseEntity.ok("Password updated successfully.");
+        }
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update password.");
     }
 }

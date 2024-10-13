@@ -3,12 +3,18 @@ package com.example.Neighborhood_Walk.controller;
 import com.example.Neighborhood_Walk.Mapper.AddressMapper;
 import com.example.Neighborhood_Walk.Mapper.RequestMapper;
 import com.example.Neighborhood_Walk.Mapper.UserMapper;
+import com.example.Neighborhood_Walk.dto.RequestDto;
 import com.example.Neighborhood_Walk.entity.Address;
 import com.example.Neighborhood_Walk.entity.Request;
 import com.example.Neighborhood_Walk.entity.User;
+import com.example.Neighborhood_Walk.service.AddressService;
+import com.example.Neighborhood_Walk.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +24,13 @@ public class RequestController {
 
     @Autowired
     private RequestMapper requestMapper;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private AddressService addressService;
+
     @PostMapping("/createRequest")
     public String createRequest(@RequestBody Request request) {
         // set request id(PK)
@@ -54,6 +67,34 @@ public class RequestController {
         } else {
             return "Request not found";
         }
+    }
+
+    @GetMapping("/nearby-requests")
+    public ResponseEntity<List<RequestDto>> getNearbyRequests(
+            @RequestParam String walkerId,
+            @RequestParam double rangeInKm) {
+
+        // 1. 获取 walker's 地址经纬度
+        Address walkerAddress = userService.getUserAddressByUserId(walkerId);
+        if (walkerAddress == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        // 2. 在地址表中根据距离筛选出符合要求的地址ID
+        List<String> nearbyAddressIds = addressService.getNearbyAddressIds(
+                walkerAddress.getLatitude(),
+                walkerAddress.getLongitude(),
+                rangeInKm
+        );
+
+        // 3. 在请求表中找到符合地址ID的请求
+        List<RequestDto> nearbyRequests = requestMapper.findRequestsByAddressIds(nearbyAddressIds, walkerAddress.getLatitude().doubleValue(),
+                walkerAddress.getLongitude().doubleValue());
+
+        // 按距离从近到远排序
+        nearbyRequests.sort(Comparator.comparingDouble(RequestDto::getDistance));
+
+        return ResponseEntity.ok(nearbyRequests);
     }
 
 }

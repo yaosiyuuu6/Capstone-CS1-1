@@ -48,6 +48,7 @@ public class AddressController {
                 );
 
                 // 将获取到的经纬度填入 address 对象中
+                System.out.println(coordinates);
                 address.setLatitude(coordinates.getLatitude());
                 address.setLongitude(coordinates.getLongitude());
             }

@@ -10,9 +10,13 @@ import lombok.Data;
 public class AgreementDetail {
 
     private String agreementId;
+    private String walkerId;
     private String startTime;
     private String status;
+    private String commentDate;
     private String trackingData;
+    private String comments;
+    private String ratingValue;
     private String walkDate;
     private String walkTime;
     private String firstName;
