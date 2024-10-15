@@ -73,8 +73,10 @@ public class ShareRequestController {
 
     // 根据 walkerId 获取 ShareRequests
     @GetMapping("/by-walker/{walkerId}")
-    public ResponseEntity<List<ShareRequestWithDescription>> getShareRequestsByWalkerId(@PathVariable String walkerId) {
-        List<ShareRequestWithDescription> list = shareRequestMapper.getRequestsByWalkerIdWithDescription(walkerId);
+    public ResponseEntity<List<ShareRequest>> getShareRequestsByWalkerId(@PathVariable String walkerId) {
+        QueryWrapper<ShareRequest> query = new QueryWrapper<>();
+        query.eq("walkerId", walkerId);
+        List<ShareRequest> list = shareRequestMapper.selectList(query);
         return ResponseEntity.ok(list);
     }
 

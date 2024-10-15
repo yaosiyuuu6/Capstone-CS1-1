@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.time.LocalTime;
 import java.util.Date;
+import java.util.Map;
 
 
 @TableName("WalkRequests")
@@ -15,6 +16,7 @@ public class Request {
     private String childId;
     private String pickupAddressId;
     private String dropoffAddressId;
+    private Map<String, Object> scheduletime;
     private String walkDate;
     private String walkTime;
     private String recurrence;
@@ -104,19 +106,12 @@ public class Request {
         this.description = description;
     }
 
+    public Map<String, Object> getScheduletime() {
+        return scheduletime;
+    }
 
-    public Request(String requestId, String parentId, String childId, String pickupAddressId, String dropoffAddressId,
-                   String walkDate, String walkTime, String recurrence, String status, String description) {
-        this.requestId = requestId;
-        this.parentId = parentId;
-        this.childId = childId;
-        this.pickupAddressId = pickupAddressId;
-        this.dropoffAddressId = dropoffAddressId;
-        this.walkDate = walkDate;
-        this.walkTime = walkTime;
-        this.recurrence = recurrence;
-        this.status = status;
-        this.description = description;
+    public void setScheduletime(Map<String, Object> scheduletime) {
+        this.scheduletime = scheduletime;
     }
 
 }

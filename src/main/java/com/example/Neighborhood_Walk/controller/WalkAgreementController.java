@@ -29,6 +29,12 @@ public class WalkAgreementController {
         return walkAgreementMapper.selectById(agreementId);
     }
 
+    // Get Agreement by walker Id
+    @GetMapping("/byWalker/{walkerId}")
+    public List<WalkAgreement> getWalkAgreementByWalker(@PathVariable("walkerId") String walkerId) {
+        return walkAgreementMapper.findByWalker(walkerId);
+    }
+
     // Get all WalkAgreement
     @GetMapping("/all")
     public List<WalkAgreement> getAllWalkAgreements() {

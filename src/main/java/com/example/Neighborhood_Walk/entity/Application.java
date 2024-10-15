@@ -22,8 +22,10 @@ public class Application {
     private Boolean preMeetScheduled;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private String description;
 
     // getter and setter methods
+
     public String getApplicationId() {
         return applicationId;
     }
@@ -86,5 +88,13 @@ public class Application {
 
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

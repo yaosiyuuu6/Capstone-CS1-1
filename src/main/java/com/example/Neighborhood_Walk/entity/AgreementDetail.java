@@ -17,6 +17,7 @@ public class AgreementDetail {
     private String trackingData;
     private String comments;
     private String ratingValue;
+    private String parentId;
     private String walkDate;
     private String walkTime;
     private String firstName;

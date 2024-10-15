@@ -8,4 +8,5 @@ import lombok.Data;
 public class WalkerRating {
     private String walkerId;
     private String rating;
+    private String ratingNum;
 }

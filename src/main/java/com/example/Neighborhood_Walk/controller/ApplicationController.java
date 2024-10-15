@@ -30,14 +30,16 @@ public class ApplicationController {
     }
     
     //根据walker获取申请
-    @GetMapping("/{walker_id}")
-    public Application getApplicationByWalker(@PathVariable("walker_id") String walker_id) {
+    @GetMapping("/byWalker/{walker_id}")
+    public List<Application> getApplicationByWalker(@PathVariable("walker_id") String walker_id) {
+        System.out.println(walker_id);
+        System.out.println(applicationMapper.findByWalker(walker_id));
         return applicationMapper.findByWalker(walker_id);
     }
 
     //根据request获取申请
-    @GetMapping("/{request_id}")
-    public Application getApplicationByRequest(@PathVariable("request_id") String request_id) {
+    @GetMapping("/byRequest/{request_id}")
+    public List<Application> getApplicationByRequest(@PathVariable("request_id") String request_id) {
         return applicationMapper.findByRequest(request_id);
     }
     

@@ -97,4 +97,15 @@ public class RequestController {
         return ResponseEntity.ok(nearbyRequests);
     }
 
+    // 根据 requestId 获取 request 的详细信息
+//    @GetMapping("/{requestId}")
+//    public ResponseEntity<Request> getRequestById(@PathVariable String requestId) {
+//        Request request = requestMapper.selectById(requestId);
+//        if (request != null) {
+//            return ResponseEntity.ok(request);
+//        } else {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+//        }
+//    }
+
 }
