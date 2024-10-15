@@ -2,11 +2,13 @@ package com.example.Neighborhood_Walk.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.Neighborhood_Walk.Mapper.WalkerProfileMapper;
+import com.example.Neighborhood_Walk.dto.WalkerProfileDTO;
 import com.example.Neighborhood_Walk.entity.WalkerProfile;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.Map;
 
@@ -16,6 +18,7 @@ public class WalkerProfileController {
 
     @Autowired
     private WalkerProfileMapper walkerProfileMapper;
+
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -29,58 +32,59 @@ public class WalkerProfileController {
         return objectMapper.readValue(json, Map.class);
     }
 
-    // 创建新的 Profile
-    @PostMapping("/createProfile")
-    public String createProfile(@RequestBody WalkerProfile profile,
-                                @RequestParam String id,
-                                @RequestBody Map<String, Object> availableDatesTimes,
-                                @RequestBody Map<String, Object> skills) throws JsonProcessingException {
-        // 将 Map 转换为 JSON 字符串存储
-        profile.setWalkerId(id);
-        profile.setAvailableDatesTimes(convertMapToJson(availableDatesTimes));
-        profile.setSkills(convertMapToJson(skills));
+    // 创建或更新 WalkerProfile
+    @PostMapping("/saveProfile")
+    public String saveProfile(@RequestBody WalkerProfileDTO profileDTO) throws JsonProcessingException {
+        // 尝试查找现有的 WalkerProfile
+        WalkerProfile existingProfile = walkerProfileMapper.selectOne(
+                new QueryWrapper<WalkerProfile>().eq("walker_id", profileDTO.getWalkerId())
+        );
 
-        walkerProfileMapper.insert(profile);
-        return "Profile created successfully";
+        // 如果没有找到 profile，则新建，否则更新现有 profile
+        WalkerProfile profile = (existingProfile != null) ? existingProfile : new WalkerProfile();
+        profile.setWalkerId(profileDTO.getWalkerId());
+        profile.setSkills(profileDTO.getSkills());
+
+        // 根据前端传递的数据判断存储逻辑
+        if (profileDTO.getAvailableDatesTimes() != null) {
+            // 如果传递了 availableDatesTimes，说明是 Weekly 时间表
+            profile.setAvailableDatesTimes(convertMapToJson(profileDTO.getAvailableDatesTimes()));
+            profile.setAvailableDate(null);  // 清空 One-off 相关字段
+            profile.setTimePeriod(null);
+        } else if (profileDTO.getAvailableDate() != null && profileDTO.getTimePeriod() != null) {
+            // 如果传递了 availableDate 和 timePeriod，说明是 One-off 时间表
+            profile.setAvailableDatesTimes(null);  // 清空 Weekly 相关字段
+            profile.setAvailableDate(profileDTO.getAvailableDate());
+            profile.setTimePeriod(profileDTO.getTimePeriod());
+        } else {
+            // 如果既没有传 availableDatesTimes 也没有传 availableDate，返回错误
+            return "Invalid request: missing time-related data";
+        }
+
+        // 插入或更新数据库
+        if (existingProfile == null) {
+            walkerProfileMapper.insert(profile);
+            return "Profile created successfully";
+        } else {
+            walkerProfileMapper.updateById(profile);
+            return "Profile updated successfully";
+        }
     }
 
-    // 根据 ID 获取 Profile
+    // 获取 WalkerProfile
     @GetMapping("/{id}")
     public WalkerProfile getProfileById(@PathVariable String id) throws JsonProcessingException {
         WalkerProfile profile = walkerProfileMapper.selectOne(new QueryWrapper<WalkerProfile>().eq("walker_id", id));
 
         if (profile != null) {
             // 将 JSON 字符串转换回 Map
-            Map<String, Object> availableDatesTimes = convertJsonToMap(profile.getAvailableDatesTimes());
-            Map<String, Object> skills = convertJsonToMap(profile.getSkills());
-
-            // 可以在这里返回 profile，也可以处理 Map 的数据
+            if (profile.getAvailableDatesTimes() != null) {
+                Map<String, Object> availableDatesTimes = convertJsonToMap(profile.getAvailableDatesTimes());
+                profile.setAvailableDatesTimes(availableDatesTimes.toString());
+            }
             return profile;
         } else {
             return null;
-        }
-    }
-
-    // 更新 Profile
-    @PutMapping("/{id}/edit")
-    public String updateProfile(@PathVariable String id,
-                                @RequestBody WalkerProfile updatedProfile,
-                                @RequestBody Map<String, Object> availableDatesTimes,
-                                @RequestBody Map<String, Object> skills) throws JsonProcessingException {
-        WalkerProfile existingProfile = walkerProfileMapper.selectOne(new QueryWrapper<WalkerProfile>().eq("walker_id", id));
-
-        if (existingProfile != null) {
-            // 保证 walkerId 不变
-            updatedProfile.setWalkerId(existingProfile.getWalkerId());
-
-            // 将 Map 转换为 JSON 字符串存储
-            updatedProfile.setAvailableDatesTimes(convertMapToJson(availableDatesTimes));
-            updatedProfile.setSkills(convertMapToJson(skills));
-
-            walkerProfileMapper.updateById(updatedProfile);
-            return "Profile updated successfully";
-        } else {
-            return "Profile not found";
         }
     }
 }

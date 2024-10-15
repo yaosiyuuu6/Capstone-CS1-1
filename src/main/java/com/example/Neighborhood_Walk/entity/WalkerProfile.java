@@ -11,25 +11,34 @@ public class WalkerProfile {
     @TableId
     private String walkerId;
 
+    // 用于存储是否具有和儿童一起工作的许可
     private String workingWithChildrenCheck;
 
-    // 将 JSON 字段改为 String 类型以便 MyBatis 直接处理
+    // Schedule type: Weekly or One-off
+    private ScheduleType scheduleType;  // 用于区分使用 availableDatesTimes 还是 availableDate + timePeriod
+
+    // JSON 字段，存储详细的可用时间段
     private String availableDatesTimes;
 
+    // 技能描述
     private String skills;
 
-    // available_date and time_period fields
+    // One-off 类型时使用的日期
     private Date availableDate;
 
-    // 枚举类型，用于表示 Morning, Afternoon, Evening, Night
+    // TimePeriod 枚举类型，用于表示 Morning, Afternoon, Evening, Night
     public enum TimePeriod {
-        MORNING, AFTERNOON, EVENING, NIGHT;
+        Morning, Afternoon, Evening, Night;
     }
 
-    private TimePeriod timePeriod;
+    private TimePeriod timePeriod;  // One-off 类型时使用的时间段
+
+    // ScheduleType 枚举，用于表示是 Weekly 还是 One-off
+    public enum ScheduleType {
+        Weekly, one_off;
+    }
 
     // Getters and Setters
-
     public String getWalkerId() {
         return walkerId;
     }
@@ -44,6 +53,14 @@ public class WalkerProfile {
 
     public void setWorkingWithChildrenCheck(String workingWithChildrenCheck) {
         this.workingWithChildrenCheck = workingWithChildrenCheck;
+    }
+
+    public ScheduleType getScheduleType() {
+        return scheduleType;
+    }
+
+    public void setScheduleType(ScheduleType scheduleType) {
+        this.scheduleType = scheduleType;
     }
 
     public String getAvailableDatesTimes() {
