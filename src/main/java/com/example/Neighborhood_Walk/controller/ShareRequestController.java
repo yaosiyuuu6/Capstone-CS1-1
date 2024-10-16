@@ -81,8 +81,8 @@ public class ShareRequestController {
     }
 
     // 更新 ShareRequest 的 shareStatus
-    @PutMapping("/{id}/status")
-    public ResponseEntity<String> updateShareStatus(@PathVariable Long id, @RequestParam String shareStatus) {
+    @PutMapping("/updateStatus/{id}")
+    public ResponseEntity<String> updateShareStatus(@PathVariable String id, @RequestParam String shareStatus) {
         ShareRequest shareRequest = shareRequestMapper.selectById(id);
         if (shareRequest == null) {
             return ResponseEntity.notFound().build();
