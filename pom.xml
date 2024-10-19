@@ -119,6 +119,13 @@
             <version>2.20.0</version>
         </dependency>
 
+        <!--  minio  -->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>8.5.11</version> <!-- 请检查最新版本 -->
+        </dependency>
+
 
 
 
