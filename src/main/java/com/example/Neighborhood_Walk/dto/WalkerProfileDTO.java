@@ -14,7 +14,7 @@ public class WalkerProfileDTO {
 
     private Date availableDate;  // 用于 One-off 类型
 
-    private TimePeriod timePeriod;  // 用于 One-off 类型
+    private String timePeriod;  // 用于 One-off 类型
 
     // Getters and Setters
     public String getWalkerId() {
@@ -49,11 +49,11 @@ public class WalkerProfileDTO {
         this.availableDate = availableDate;
     }
 
-    public TimePeriod getTimePeriod() {
+    public String getTimePeriod() {
         return timePeriod;
     }
 
-    public void setTimePeriod(TimePeriod timePeriod) {
+    public void setTimePeriod(String timePeriod) {
         this.timePeriod = timePeriod;
     }
 }

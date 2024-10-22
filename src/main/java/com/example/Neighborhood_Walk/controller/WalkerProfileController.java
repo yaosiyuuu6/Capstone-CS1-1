@@ -44,23 +44,23 @@ public class WalkerProfileController {
         WalkerProfile profile = (existingProfile != null) ? existingProfile : new WalkerProfile();
         profile.setWalkerId(profileDTO.getWalkerId());
         profile.setSkills(profileDTO.getSkills());
-
         // 根据前端传递的数据判断存储逻辑
         if (profileDTO.getAvailableDatesTimes() != null) {
             // 如果传递了 availableDatesTimes，说明是 Weekly 时间表
             profile.setAvailableDatesTimes(convertMapToJson(profileDTO.getAvailableDatesTimes()));
+            profile.setScheduleType("Weekly");
             profile.setAvailableDate(null);  // 清空 One-off 相关字段
             profile.setTimePeriod(null);
         } else if (profileDTO.getAvailableDate() != null && profileDTO.getTimePeriod() != null) {
             // 如果传递了 availableDate 和 timePeriod，说明是 One-off 时间表
             profile.setAvailableDatesTimes(null);  // 清空 Weekly 相关字段
             profile.setAvailableDate(profileDTO.getAvailableDate());
+            profile.setScheduleType("one_off");
             profile.setTimePeriod(profileDTO.getTimePeriod());
         } else {
             // 如果既没有传 availableDatesTimes 也没有传 availableDate，返回错误
             return "Invalid request: missing time-related data";
         }
-
         // 插入或更新数据库
         if (existingProfile == null) {
             walkerProfileMapper.insert(profile);

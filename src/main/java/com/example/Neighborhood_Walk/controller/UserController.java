@@ -3,11 +3,13 @@ package com.example.Neighborhood_Walk.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.Neighborhood_Walk.Mapper.AddressMapper;
 import com.example.Neighborhood_Walk.Mapper.UserMapper;
+import com.example.Neighborhood_Walk.Mapper.UserPhotoMapper;
 import com.example.Neighborhood_Walk.Mapper.UserVerificationMapper;
 import com.example.Neighborhood_Walk.dto.UserDto;
 
 import com.example.Neighborhood_Walk.entity.Address;
 import com.example.Neighborhood_Walk.entity.User;
+import com.example.Neighborhood_Walk.entity.UserPhoto;
 import com.example.Neighborhood_Walk.entity.UserVerification;
 import com.example.Neighborhood_Walk.service.AddressService;
 import com.example.Neighborhood_Walk.service.RedisService;
@@ -45,6 +47,9 @@ public class UserController {
 
     @Autowired
     private AddressService addressService;
+
+    @Autowired
+    private UserPhotoMapper userPhotoMapper;
 
     @PostMapping("/register")
     public String registerUser(@RequestBody User user) {
@@ -95,7 +100,7 @@ public class UserController {
         redisService.clearVerificationData(user.getEmail());
         redisService.clearVerificationData(user.getPhoneNumber());
 
-        return "User registered successfully! UserID: " + user.getUserId();
+        return user.getUserId();
     }
 
 
@@ -300,5 +305,22 @@ public class UserController {
         }
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update password.");
+    }
+
+    //获取头像URL
+    @GetMapping("/getPhotoUrl")
+    public String getPhotoUrl(@RequestParam String userId) {
+        return userPhotoMapper.findPhotosByUserId(userId).get(0).getPhotoUrl();
+    }
+
+    //更新头像URL
+    @PostMapping("/createUserPhoto")
+    public String postPhotoUrl(@RequestParam String userId) {
+        UserPhoto userPhoto = new UserPhoto();
+        userPhoto.setPhotoId(UUID.randomUUID().toString());
+        userPhoto.setUserId(userId);
+        userPhoto.setPhotoUrl("http://localhost:9000/avatars/1729503639417_defaultAvatar.webp");
+        userPhotoMapper.insertUserPhoto(userPhoto);
+        return "Photo URL updated successfully!";
     }
 }

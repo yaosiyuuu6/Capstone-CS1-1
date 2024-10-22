@@ -9,13 +9,25 @@ import com.example.Neighborhood_Walk.service.EmailService;
 import com.example.Neighborhood_Walk.service.RedisService;
 import com.example.Neighborhood_Walk.service.SmsService;
 import com.example.Neighborhood_Walk.util.VerificationCodeGenerator;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/verifications")
@@ -35,6 +47,18 @@ public class UserVerificationController {
 
     @Autowired
     private RedisService redisService;
+
+    @Value("${digitalid.client_id}")
+    private String clientId;
+
+    @Value("${digitalid.client_secret}")
+    private String clientSecret;
+
+    @Value("${digitalid.auth_url}")
+    private String authUrl;
+
+    private static final Logger logger = LoggerFactory.getLogger(UserVerificationController.class);
+
 
     // Create UserVerification
     @PostMapping("/create")
@@ -332,6 +356,96 @@ public class UserVerificationController {
 
         return "Contact information updated successfully.";
     }
+
+    @PostMapping("/verify-identity")
+    public ResponseEntity<String> verifyIdentity(@RequestParam String userId) {
+        // 查询是否存在相关的身份验证记录
+        UserVerification existingVerification = userVerificationMapper.selectOne(
+                new QueryWrapper<UserVerification>()
+                        .eq("user_id", userId)
+                        .eq("verification_type", "Identity")
+        );
+
+        if (existingVerification == null) {
+            // 插入新的验证记录
+            UserVerification newVerification = new UserVerification();
+            newVerification.setVerificationId(UUID.randomUUID().toString());
+            newVerification.setUserId(userId);
+            newVerification.setVerificationType("Identity");
+            newVerification.setVerificationStatus("Verified");
+            newVerification.setVerificationDate(Timestamp.valueOf(LocalDateTime.now()));
+            newVerification.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
+            newVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
+            userVerificationMapper.insert(newVerification);
+        } else {
+            // 更新已有的验证记录
+            existingVerification.setVerificationStatus("Verified");
+            existingVerification.setVerificationDate(Timestamp.valueOf(LocalDateTime.now()));
+            existingVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
+            userVerificationMapper.updateById(existingVerification);
+        }
+
+        return ResponseEntity.ok("Verification processed successfully.");
+    }
+
+    @GetMapping("/check-identity")
+    public ResponseEntity<Map<String, Boolean>> checkIdentityVerification(@RequestParam String userId) {
+        UserVerification verification = userVerificationMapper.selectOne(
+                new QueryWrapper<UserVerification>()
+                        .eq("user_id", userId)
+                        .eq("verification_type", "Identity")
+                        .eq("verification_status", "Verified")
+        );
+
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("verified", verification != null);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/verifications/getVerifyStatus")
+    public String getAccessToken(@RequestParam("code") String grantCode) {
+        logger.info("Grant Code: " + grantCode);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBasicAuth(clientId, clientSecret);
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "authorization_code");
+        body.add("code", grantCode);
+        body.add("redirect_uri", "https://digitalid-sandbox.com/oauth2/echo");
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(authUrl, request, String.class);
+            logger.info("Response: " + response.getBody());
+
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                JSONObject jsonResponse = new JSONObject(response.getBody());
+                return jsonResponse.getString("id_token");
+            } else {
+                System.out.println("Error: " + response.getBody());
+                return null;
+            }
+        } catch (HttpClientErrorException e) {
+            System.out.println("Error: " + e.getResponseBodyAsString());
+            return null;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+
+
+
+
 
 
 

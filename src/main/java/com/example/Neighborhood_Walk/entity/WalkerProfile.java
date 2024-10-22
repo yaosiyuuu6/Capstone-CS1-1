@@ -15,7 +15,7 @@ public class WalkerProfile {
     private String workingWithChildrenCheck;
 
     // Schedule type: Weekly or One-off
-    private ScheduleType scheduleType;  // 用于区分使用 availableDatesTimes 还是 availableDate + timePeriod
+    private String scheduleType;  // 用于区分使用 availableDatesTimes 还是 availableDate + timePeriod
 
     // JSON 字段，存储详细的可用时间段
     private String availableDatesTimes;
@@ -31,12 +31,9 @@ public class WalkerProfile {
         Morning, Afternoon, Evening, Night;
     }
 
-    private TimePeriod timePeriod;  // One-off 类型时使用的时间段
+    private String timePeriod;  // One-off 类型时使用的时间段
 
     // ScheduleType 枚举，用于表示是 Weekly 还是 One-off
-    public enum ScheduleType {
-        Weekly, one_off;
-    }
 
     // Getters and Setters
     public String getWalkerId() {
@@ -55,11 +52,11 @@ public class WalkerProfile {
         this.workingWithChildrenCheck = workingWithChildrenCheck;
     }
 
-    public ScheduleType getScheduleType() {
+    public String getScheduleType() {
         return scheduleType;
     }
 
-    public void setScheduleType(ScheduleType scheduleType) {
+    public void setScheduleType(String scheduleType) {
         this.scheduleType = scheduleType;
     }
 
@@ -87,11 +84,11 @@ public class WalkerProfile {
         this.availableDate = availableDate;
     }
 
-    public TimePeriod getTimePeriod() {
+    public String getTimePeriod() {
         return timePeriod;
     }
 
-    public void setTimePeriod(TimePeriod timePeriod) {
+    public void setTimePeriod(String timePeriod) {
         this.timePeriod = timePeriod;
     }
 }
