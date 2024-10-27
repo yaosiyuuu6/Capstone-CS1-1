@@ -30,7 +30,7 @@ public class ParentsAddressController {
     @GetMapping("/{userId}")
     public List<ParentsAddress> getParentsAddressByUserId(@PathVariable String userId) {
         QueryWrapper<ParentsAddress> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("userId", userId);
+        queryWrapper.eq("user_Id", userId);
         return parentsAddressMapper.selectList(queryWrapper);
     }
 

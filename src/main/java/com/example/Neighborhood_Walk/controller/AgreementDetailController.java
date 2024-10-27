@@ -31,4 +31,9 @@ public class AgreementDetailController {
     public WalkerRating getRating(@PathVariable("walker_id") String walkerId){
         return AgreementDetailMapper.getRating(walkerId);
     }
+
+    @GetMapping("/listByParent/{parent_id}")
+    public List<AgreementDetail> getAgreements(@PathVariable("parent_id") String parentId){
+        return AgreementDetailMapper.getAgreements(parentId);
+    }
 }

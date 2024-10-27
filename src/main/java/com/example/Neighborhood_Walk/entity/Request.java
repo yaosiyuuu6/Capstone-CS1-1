@@ -1,5 +1,6 @@
 package com.example.Neighborhood_Walk.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
@@ -13,6 +14,8 @@ public class Request {
     @TableId
     private String requestId;
     private String parentId;
+
+    @TableField("child_id")
     private String childId;
     private String pickupAddressId;
     private String dropoffAddressId;
@@ -23,6 +26,9 @@ public class Request {
     private String status;
     private String description;
 
+    private String createdAt;
+
+    private String updatedAt;
 
     // Getters and Setters
 
@@ -42,11 +48,11 @@ public class Request {
         this.parentId = parentId;
     }
 
-    public String getChildName() {
+    public String getChildId() {
         return childId;
     }
 
-    public void setChildName(String childId) {
+    public void setChildId(String childId) {
         this.childId = childId;
     }
 
@@ -112,6 +118,14 @@ public class Request {
 
     public void setScheduletime(Map<String, Object> scheduletime) {
         this.scheduletime = scheduletime;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public String getUpdatedAt() {
+        return updatedAt;
     }
 
 }

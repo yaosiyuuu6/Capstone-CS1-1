@@ -2,6 +2,7 @@ package com.example.Neighborhood_Walk.Mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.Neighborhood_Walk.dto.RequestDto;
+
 import com.example.Neighborhood_Walk.entity.Request;
 import org.apache.ibatis.annotations.*;
 
@@ -13,9 +14,9 @@ public interface RequestMapper extends BaseMapper<Request> {
     @Select("SELECT * FROM WalkRequests WHERE parent_id = #{id} and Status != 'Canceled'")
     List<Request> findById(String id);
 
-    @Update("UPDATE WalkRequests SET child_name=#{childName}, pickup_address_id=#{pickupAddress}, " +
+    @Update("UPDATE WalkRequests SET child_id=#{childId}, pickup_address_id=#{pickupAddress}, " +
             "dropoff_address_id=#{dropoffAddress}, walk_date=#{walkDate}, walk_time=#{walkTime}, " +
-            "recurrence=#{recurrence}, status=#{status}, description=#{description} WHERE request_id=#{requestId}")
+            "recurrence=#{recurrence}, description=#{description} WHERE request_id=#{requestId}")
     void update(Request request);
 
     @Select("<script>"

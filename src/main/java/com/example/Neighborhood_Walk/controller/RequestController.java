@@ -1,12 +1,11 @@
 package com.example.Neighborhood_Walk.controller;
 
-import com.example.Neighborhood_Walk.Mapper.AddressMapper;
+
 import com.example.Neighborhood_Walk.Mapper.RequestMapper;
-import com.example.Neighborhood_Walk.Mapper.UserMapper;
 import com.example.Neighborhood_Walk.dto.RequestDto;
 import com.example.Neighborhood_Walk.entity.Address;
 import com.example.Neighborhood_Walk.entity.Request;
-import com.example.Neighborhood_Walk.entity.User;
+
 import com.example.Neighborhood_Walk.service.AddressService;
 import com.example.Neighborhood_Walk.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +38,8 @@ public class RequestController {
         return "Create Successfully";
     }
     @GetMapping("/list")
-    public List<Request> getAllRequests(String parent_id) {
-        return requestMapper.findById(parent_id);
+    public List<Request> getAllRequests(@RequestParam String parentId) {
+        return requestMapper.findById(parentId);
     }
 
     // Method to get the existing request by ID
@@ -57,6 +56,7 @@ public class RequestController {
     // Method to update an existing request
     @PutMapping("/{id}/edit")
     public String updateRequest(@PathVariable String id, @RequestBody Request updatedRequest) {
+        System.out.println(updatedRequest.getRequestId());
         Request existingRequest = requestMapper.selectById(id);
         if (existingRequest != null) {
             updatedRequest.setParentId(existingRequest.getParentId());

@@ -313,13 +313,13 @@ public class UserController {
         return userPhotoMapper.findPhotosByUserId(userId).get(0).getPhotoUrl();
     }
 
-    //更新头像URL
+    //初始化头像URL
     @PostMapping("/createUserPhoto")
     public String postPhotoUrl(@RequestParam String userId) {
         UserPhoto userPhoto = new UserPhoto();
         userPhoto.setPhotoId(UUID.randomUUID().toString());
         userPhoto.setUserId(userId);
-        userPhoto.setPhotoUrl("http://localhost:9000/avatars/1729503639417_defaultAvatar.webp");
+        userPhoto.setPhotoUrl("http://44.200.151.81:9000/avatars/1729771636619_1239a819-0172-4113-a3af-3e7350fa9f29");
         userPhotoMapper.insertUserPhoto(userPhoto);
         return "Photo URL updated successfully!";
     }

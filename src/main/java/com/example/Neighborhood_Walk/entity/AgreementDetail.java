@@ -20,10 +20,12 @@ public class AgreementDetail {
     private String parentId;
     private String walkDate;
     private String walkTime;
+    private String description;
     private String firstName;
     private String lastName;
     private String email;
     private String phoneNumber;
+    private String avatar;
     private String pickupAddress;
     private String dropoffAddress;
     private String childName;

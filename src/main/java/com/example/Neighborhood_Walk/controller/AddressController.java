@@ -70,15 +70,38 @@ public class AddressController {
         return addressMapper.selectById(addressId);
     }
 
-    //Update address
+    // Update address
     @PutMapping("/{id}")
-    public String updateAddress(@PathVariable("id") String addressId, @RequestBody Address address) {
-        Address existingAddress = addressMapper.selectById(addressId);
+    public String updateAddress(@RequestBody Address address) {
+        // 查询现有地址
+        Address existingAddress = addressMapper.selectById(address.getAddressId());
         if (existingAddress == null) {
             return "Address not found.";
         }
-        address.setAddressId(addressId);
+
+        // 反向解析地址，获取经纬度
+        if (address.getLatitude() == null || address.getLongitude() == null) {
+            // 调用 geocodingService 来获取坐标
+            Coordinates coordinates = geocodingService.reverseGeocode(
+                    address.getAddressLine1() + " " +
+                            address.getAddressLine2() + " " +
+                            address.getCity() + " " +
+                            address.getState() + " " +
+                            address.getPostcode() + " " +
+                            address.getCountry()
+            );
+
+            // 设置新的经纬度
+            address.setLatitude(coordinates.getLatitude());
+            address.setLongitude(coordinates.getLongitude());
+        }
+
+        // 设置地址 ID
+        address.setAddressId(address.getAddressId());
+
+        // 更新地址
         addressMapper.updateById(address);
+
         return "Address updated successfully.";
     }
 
