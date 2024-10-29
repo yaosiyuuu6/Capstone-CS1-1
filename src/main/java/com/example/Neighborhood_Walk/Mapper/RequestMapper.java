@@ -11,12 +11,12 @@ import java.util.List;
 @Mapper
 public interface RequestMapper extends BaseMapper<Request> {
 
-    @Select("SELECT * FROM WalkRequests WHERE parent_id = #{id} and Status != 'Canceled'")
+    @Select("SELECT * FROM WalkRequests WHERE parent_id = #{id} and Status != 'Canceled' order by updated_at desc")
     List<Request> findById(String id);
 
-    @Update("UPDATE WalkRequests SET child_id=#{childId}, pickup_address_id=#{pickupAddress}, " +
+    @Update("UPDATE WalkRequests SET child_id=#{childId}, pickup_address_id=#{pickupAddress}, status=#{status}," +
             "dropoff_address_id=#{dropoffAddress}, walk_date=#{walkDate}, walk_time=#{walkTime}, " +
-            "recurrence=#{recurrence}, description=#{description} WHERE request_id=#{requestId}")
+            "recurrence=#{recurrence},scheduletime=#{scheduletime}, description=#{description} WHERE request_id=#{requestId}")
     void update(Request request);
 
     @Select("<script>"

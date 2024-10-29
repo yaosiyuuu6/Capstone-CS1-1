@@ -1,15 +1,17 @@
 package com.example.Neighborhood_Walk.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 @TableName("ParentsAddress")
 public class ParentsAddress {
 
-    @TableId
-    private String userId;  // UUID格式的用户ID
+    @TableId(value = "user_id") // 指定数据库字段名
+    private String userId; // UUID格式的用户ID
 
-    private String addressId;  // UUID格式的地址ID
+    @TableField(value = "address_id") // 指定数据库字段名
+    private String addressId; // UUID格式的地址ID
 
     // Getters and Setters
     public String getUserId() {

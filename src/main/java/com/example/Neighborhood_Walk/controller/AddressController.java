@@ -72,38 +72,41 @@ public class AddressController {
 
     // Update address
     @PutMapping("/{id}")
-    public String updateAddress(@RequestBody Address address) {
-        // 查询现有地址
-        Address existingAddress = addressMapper.selectById(address.getAddressId());
+    public String updateAddress(@PathVariable("id") String id, @RequestBody Address address) {
+        // 使用路径参数中的 id 查找现有地址
+        Address existingAddress = addressMapper.selectById(id);
         if (existingAddress == null) {
             return "Address not found.";
         }
 
-        // 反向解析地址，获取经纬度
-        if (address.getLatitude() == null || address.getLongitude() == null) {
-            // 调用 geocodingService 来获取坐标
-            Coordinates coordinates = geocodingService.reverseGeocode(
-                    address.getAddressLine1() + " " +
-                            address.getAddressLine2() + " " +
-                            address.getCity() + " " +
-                            address.getState() + " " +
-                            address.getPostcode() + " " +
-                            address.getCountry()
-            );
+        // 更新其他属性
+        existingAddress.setAddressLine1(address.getAddressLine1());
+        existingAddress.setAddressLine2(address.getAddressLine2());
+        existingAddress.setCity(address.getCity());
+        existingAddress.setState(address.getState());
+        existingAddress.setPostcode(address.getPostcode());
+        existingAddress.setCountry(address.getCountry());
 
-            // 设置新的经纬度
-            address.setLatitude(coordinates.getLatitude());
-            address.setLongitude(coordinates.getLongitude());
+        // 如果坐标未提供，调用地理编码服务来获取坐标
+        if (existingAddress.getLatitude() == null || existingAddress.getLongitude() == null) {
+            Coordinates coordinates = geocodingService.reverseGeocode(
+                    existingAddress.getAddressLine1() + " " +
+                            existingAddress.getAddressLine2() + " " +
+                            existingAddress.getCity() + " " +
+                            existingAddress.getState() + " " +
+                            existingAddress.getPostcode() + " " +
+                            existingAddress.getCountry()
+            );
+            existingAddress.setLatitude(coordinates.getLatitude());
+            existingAddress.setLongitude(coordinates.getLongitude());
         }
 
-        // 设置地址 ID
-        address.setAddressId(address.getAddressId());
-
         // 更新地址
-        addressMapper.updateById(address);
+        addressMapper.updateById(existingAddress);
 
         return "Address updated successfully.";
     }
+
 
     //Delete address
     @DeleteMapping("/{id}")

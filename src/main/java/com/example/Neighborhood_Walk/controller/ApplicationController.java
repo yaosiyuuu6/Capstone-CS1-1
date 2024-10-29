@@ -5,6 +5,7 @@ import com.example.Neighborhood_Walk.Mapper.ApplicationMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,6 +20,7 @@ public class ApplicationController {
     @PostMapping("/create")
     public String createApplication(@RequestBody Application application) {
         application.setApplicationId(UUID.randomUUID().toString());
+        application.setApplicationDate(new Date()); // 添加当前日期
         applicationMapper.insert(application);
         return "Application created successfully!";
     }
@@ -61,13 +63,9 @@ public class ApplicationController {
         return "Application updated successfully!";
     }
 
-    // 删除申请（需要管理员权限）
+    // 删除申请
     @DeleteMapping("/{id}")
-    public String deleteApplication(@PathVariable("id") String applicationId, @RequestHeader("userType") String userType) {
-        if (!"Admin".equalsIgnoreCase(userType)) {
-            return "You do not have permission to delete applications.";
-        }
-
+    public String deleteApplication(@PathVariable("id") String applicationId) {
         int result = applicationMapper.deleteById(applicationId);
         if (result > 0) {
             return "Application deleted successfully!";
@@ -75,4 +73,5 @@ public class ApplicationController {
             return "Application not found.";
         }
     }
+
 }

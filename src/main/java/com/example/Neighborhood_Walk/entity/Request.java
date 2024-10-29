@@ -19,7 +19,7 @@ public class Request {
     private String childId;
     private String pickupAddressId;
     private String dropoffAddressId;
-    private Map<String, Object> scheduletime;
+    private String scheduletime;
     private String walkDate;
     private String walkTime;
     private String recurrence;
@@ -112,11 +112,11 @@ public class Request {
         this.description = description;
     }
 
-    public Map<String, Object> getScheduletime() {
+    public String getScheduletime() {
         return scheduletime;
     }
 
-    public void setScheduletime(Map<String, Object> scheduletime) {
+    public void setScheduletime(String scheduletime) {
         this.scheduletime = scheduletime;
     }
 

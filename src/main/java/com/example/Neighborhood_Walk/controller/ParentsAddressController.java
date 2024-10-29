@@ -49,7 +49,7 @@ public class ParentsAddressController {
     @DeleteMapping("/delete/{userId}/{addressId}")
     public String deleteParentsAddress(@PathVariable String userId, @PathVariable String addressId) {
         QueryWrapper<ParentsAddress> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("userId", userId).eq("addressId", addressId);
+        queryWrapper.eq("user_id", userId).eq("address_id", addressId);
         int result = parentsAddressMapper.delete(queryWrapper);
         if (result > 0) {
             return "ParentsAddress deleted successfully!";

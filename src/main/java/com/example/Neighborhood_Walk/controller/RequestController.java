@@ -97,6 +97,17 @@ public class RequestController {
         return ResponseEntity.ok(nearbyRequests);
     }
 
+    @DeleteMapping("/{id}/delete")
+    public String deleteRequest(@PathVariable String id) {
+        Request request = requestMapper.selectById(id);
+        if (request != null) {
+            requestMapper.deleteById(id);
+            return "Delete Successfully";
+        } else {
+            return "Request not found";
+        }
+    }
+
     // 根据 requestId 获取 request 的详细信息
 //    @GetMapping("/{requestId}")
 //    public ResponseEntity<Request> getRequestById(@PathVariable String requestId) {

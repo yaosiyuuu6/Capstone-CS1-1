@@ -19,6 +19,6 @@ public interface ShareRequestMapper extends BaseMapper<ShareRequest> {
     @Select("SELECT sr.*, wr.description " +
             "FROM ShareRequest sr " +
             "JOIN WalkRequest wr ON sr.requestId = wr.id " +
-            "WHERE sr.walkerId = #{walkerId}")
+            "WHERE sr.walkerId = #{walkerId} order by sr.updatedAt desc")
     List<ShareRequestWithDescription> getRequestsByWalkerIdWithDescription(@Param("walkerId") String walkerId);
 }
