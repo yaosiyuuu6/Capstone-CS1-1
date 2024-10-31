@@ -19,4 +19,6 @@ public interface AgreementDetailMapper extends BaseMapper<AgreementDetail>{
     List<AgreementDetail> getAgreements(String parent_id);
     @Select("select * from WalkerRating_View where walker_id = #{walker_id}")
     WalkerRating getRating(String walker_id);
+    @Select("select * from AgreementDetails_View")
+    List<AgreementDetail> getAllComments();
 }

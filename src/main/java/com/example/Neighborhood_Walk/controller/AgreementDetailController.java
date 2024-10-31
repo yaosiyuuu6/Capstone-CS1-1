@@ -27,6 +27,11 @@ public class AgreementDetailController {
         return AgreementDetailMapper.getComments(walkerId);
     }
 
+    @GetMapping("/comments/all")
+    public List<AgreementDetail> getAllComments() {
+        return AgreementDetailMapper.getAllComments();
+    }
+
     @GetMapping("/rating/{walker_id}")
     public WalkerRating getRating(@PathVariable("walker_id") String walkerId){
         return AgreementDetailMapper.getRating(walkerId);

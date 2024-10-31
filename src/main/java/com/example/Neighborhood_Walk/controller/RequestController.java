@@ -53,6 +53,12 @@ public class RequestController {
         }
     }
 
+    // Method to get the all request
+    @GetMapping("/all")
+    public List<Request> getAllRequest() {
+        return requestMapper.getAllRequest();
+    }
+
     // Method to update an existing request
     @PutMapping("/{id}/edit")
     public String updateRequest(@PathVariable String id, @RequestBody Request updatedRequest) {

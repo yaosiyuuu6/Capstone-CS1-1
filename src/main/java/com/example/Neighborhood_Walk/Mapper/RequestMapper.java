@@ -36,6 +36,8 @@ public interface RequestMapper extends BaseMapper<Request> {
                                               @Param("latitude") double latitude,
                                               @Param("longitude") double longitude);
 
+    @Select("SELECT * FROM WalkRequests")
+    List<Request> getAllRequest();
 
 }
 
