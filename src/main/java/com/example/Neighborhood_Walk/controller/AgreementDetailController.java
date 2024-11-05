@@ -17,28 +17,34 @@ public class AgreementDetailController {
     private AgreementDetailMapper AgreementDetailMapper;
 
 
-    // Get Detail
+    // Get detailed information about an agreement by its ID
     @GetMapping("/detail/{agreement_id}")
     public AgreementDetail getDetail(@PathVariable("agreement_id") String agreementId) {
         return AgreementDetailMapper.getAgreementDetail(agreementId);
     }
+
+    // Get all comments for a specific walker by their walker ID
     @GetMapping("/comments/{walker_id}")
     public List<AgreementDetail> getComments(@PathVariable("walker_id") String walkerId) {
         return AgreementDetailMapper.getComments(walkerId);
     }
 
+    // Get all comments across all agreements
     @GetMapping("/comments/all")
     public List<AgreementDetail> getAllComments() {
         return AgreementDetailMapper.getAllComments();
     }
 
+    // Get the rating for a specific walker by their walker ID
     @GetMapping("/rating/{walker_id}")
-    public WalkerRating getRating(@PathVariable("walker_id") String walkerId){
+    public WalkerRating getRating(@PathVariable("walker_id") String walkerId) {
         return AgreementDetailMapper.getRating(walkerId);
     }
 
+    // Get all agreements associated with a specific parent by their parent ID
     @GetMapping("/listByParent/{parent_id}")
-    public List<AgreementDetail> getAgreements(@PathVariable("parent_id") String parentId){
+    public List<AgreementDetail> getAgreements(@PathVariable("parent_id") String parentId) {
         return AgreementDetailMapper.getAgreements(parentId);
     }
+
 }

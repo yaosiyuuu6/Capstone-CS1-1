@@ -13,7 +13,7 @@ public class AddressService {
     @Autowired
     private AddressMapper addressMapper;
 
-    // 根据中心经纬度和范围查找符合条件的地址ID
+    // Find the address IDs that meet the conditions based on the center latitude and longitude and range
     public List<String> getNearbyAddressIds(BigDecimal latitude, BigDecimal longitude, double rangeInKm) {
         return addressMapper.findNearbyAddressIds(latitude, longitude, rangeInKm);
     }

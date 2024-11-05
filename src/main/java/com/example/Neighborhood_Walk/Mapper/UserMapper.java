@@ -43,14 +43,12 @@ public interface UserMapper extends BaseMapper<User> {
     @Select("SELECT * FROM Users WHERE user_type = 'Both'")
     List<User> getAllBoth();
 
-    // 通过 userId 查找用户的地址
     @Select("SELECT a.* " +
             "FROM Users u " +
             "JOIN Addresses a ON u.address_id = a.address_id " +
             "WHERE u.user_id = #{userId}")
     Address findAddressByUserId(@Param("userId") String userId);
 
-    // 根据 addressIds 和 user_type 查找 walker 用户
     @Select("<script>"
             + "SELECT u.user_id AS userId, u.first_name AS name, u.last_name AS lastName, u.description, u.address_id AS addressId, "
             + "ST_Distance_Sphere(POINT(#{longitude}, #{latitude}), POINT(a.longitude, a.latitude)) AS distance, "

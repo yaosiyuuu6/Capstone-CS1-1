@@ -15,9 +15,9 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 public class ParentLocationWebSocketHandler extends TextWebSocketHandler {
 
     private final ShareLocationService shareLocationService;
-    private final RedisTemplate<String, String> redisTemplate;  // 使用 String-String RedisTemplate
+    private final RedisTemplate<String, String> redisTemplate;  // Using String-String RedisTemplate
 
-    // 构造函数注入
+    // Constructor injection for dependencies
     public ParentLocationWebSocketHandler(ShareLocationService shareLocationService, RedisTemplate<String, String> redisTemplate) {
         this.shareLocationService = shareLocationService;
         this.redisTemplate = redisTemplate;
@@ -27,36 +27,37 @@ public class ParentLocationWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        // Get the payload (message content) from the WebSocket message
         String payload = message.getPayload();
         logger.info("Received WebSocket message from parent: {}", payload);
 
-        // 假设前端传递的 JSON 数据包含 agreementId 和 walkerId
+        // Assume the frontend sends JSON data containing agreementId, parentId, and walkerId
         JsonNode jsonNode = new ObjectMapper().readTree(payload);
         String parentId = jsonNode.get("parentId").asText();
         String agreementId = jsonNode.get("agreementId").asText();
         String walkerId = jsonNode.get("walkerId").asText();
 
-        // 打印 Parent ID
-        logger.info("WebSocket connection established for parentId: {} agreementId: {} walker id: {}", parentId, agreementId, walkerId);
+        // Log the parent ID and related details for debugging
+        logger.info("WebSocket connection established for parentId: {} agreementId: {} walkerId: {}", parentId, agreementId, walkerId);
 
-        // 从 Redis 获取 walker 最新位置信息
+        // Retrieve the latest location data of the walker from Redis
         String locationData = shareLocationService.getLatestLocationFromRedis(walkerId, agreementId);
 
-        // 如果 Redis 中没有数据，则从数据库中获取
+        // If no data is found in Redis, try to fetch it from the database
         if (locationData == null || locationData.isEmpty()) {
             logger.warn("No location data found in Redis, checking the database for walkerId: {}, agreementId: {}", walkerId, agreementId);
 
-            // 从数据库获取位置数据
+            // Fetch location data from the database
             locationData = shareLocationService.getLatestLocationFromDatabase(walkerId, agreementId);
 
             if (locationData == null || locationData.isEmpty()) {
                 logger.error("Failed to retrieve location data from both Redis and Database for walkerId: {}, agreementId: {}", walkerId, agreementId);
-                session.sendMessage(new TextMessage("No location data available.")); // 发送错误消息到前端
-                return; // 如果没有找到数据，直接返回，避免后续 NullPointerException
+                session.sendMessage(new TextMessage("No location data available."));  // Send error message to the frontend
+                return;  // Return early to avoid further execution if no data is found
             }
         }
 
-        // 将位置信息发送给 Parent
+        // If location data is available, send it to the parent
         if (locationData != null) {
             session.sendMessage(new TextMessage(locationData));
             logger.info("Sent location data to parentId: {}, for walkerId: {}, agreementId: {}", parentId, walkerId, agreementId);
@@ -65,4 +66,5 @@ public class ParentLocationWebSocketHandler extends TextWebSocketHandler {
             logger.info("No location data available for walkerId: {}, agreementId: {}", walkerId, agreementId);
         }
     }
+
 }

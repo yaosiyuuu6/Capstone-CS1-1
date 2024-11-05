@@ -17,7 +17,7 @@ public class MinioService {
     @Value("${minio.bucket-name}")
     private String bucketName;
 
-    @Value("${minio.url}")  // 你的 MinIO URL，例如 http://localhost:9000
+    @Value("${minio.url}")  // minio url
     private String minioUrl;
     public MinioService(@Value("${minio.url}") String url,
                         @Value("${minio.access-key}") String accessKey,
@@ -28,11 +28,11 @@ public class MinioService {
                 .build();
     }
 
-    public String uploadFile(MultipartFile file) throws Exception {
+    public String uploadFile(MultipartFile file, String userId) throws Exception {
         try (InputStream inputStream = file.getInputStream()) {
-            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+            String fileName = System.currentTimeMillis() + "_" + userId;
 
-            // 上传文件到 MinIO
+            // upload file to MinIO
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(bucketName)
@@ -42,8 +42,8 @@ public class MinioService {
                             .build()
             );
 
-            // 返回文件的访问 URL
-            return minioUrl + "/" + bucketName + "/" + fileName;
+            // return file URL
+            return "https://www.communea.net:9001/" + bucketName + "/" + fileName;
 
         } catch (MinioException e) {
             throw new RuntimeException("Error while uploading file to MinIO: " + e.getMessage());

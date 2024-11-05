@@ -15,11 +15,16 @@ public class SmsController {
     @Autowired
     private SmsService smsService;
 
+    // Send an SMS message
     @PostMapping("/send")
     public ResponseEntity<String> sendSms(@RequestParam String phoneNumber, @RequestParam String message) {
+        // Call the SMS service to send the message
         String result = smsService.sendSms(phoneNumber, message);
+
+        // Return the result of the SMS sending operation
         return ResponseEntity.ok(result);
     }
+
 }
 
 

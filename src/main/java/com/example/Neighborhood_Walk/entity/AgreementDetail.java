@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 @Data
-@TableName("AgreementDetails_View") // 替换为视图的名称
+@TableName("AgreementDetails_View")
 public class AgreementDetail {
 
     private String agreementId;

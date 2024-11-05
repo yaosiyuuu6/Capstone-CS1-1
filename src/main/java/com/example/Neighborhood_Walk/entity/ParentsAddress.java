@@ -7,11 +7,11 @@ import com.baomidou.mybatisplus.annotation.TableName;
 @TableName("ParentsAddress")
 public class ParentsAddress {
 
-    @TableId(value = "user_id") // 指定数据库字段名
-    private String userId; // UUID格式的用户ID
+    @TableId(value = "user_id")
+    private String userId;
 
-    @TableField(value = "address_id") // 指定数据库字段名
-    private String addressId; // UUID格式的地址ID
+    @TableField(value = "address_id")
+    private String addressId;
 
     // Getters and Setters
     public String getUserId() {

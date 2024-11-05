@@ -30,44 +30,57 @@ public class RequestController {
     @Autowired
     private AddressService addressService;
 
+    // Create a new Request
     @PostMapping("/createRequest")
     public String createRequest(@RequestBody Request request) {
-        // set request id(PK)
+        // Set a unique requestId (Primary Key)
         request.setRequestId(UUID.randomUUID().toString());
+
+        // Insert the new request into the database
         requestMapper.insert(request);
+
         return "Create Successfully";
     }
+
+    // Get all requests for a specific parent by parentId
     @GetMapping("/list")
     public List<Request> getAllRequests(@RequestParam String parentId) {
         return requestMapper.findById(parentId);
     }
 
-    // Method to get the existing request by ID
+    // Get a specific request by its ID
     @GetMapping("/{id}")
     public Request getRequestById(@PathVariable String id) {
         Request request = requestMapper.selectById(id);
+
+        // Return the request if found, otherwise return null
         if (request != null) {
             return request;
         } else {
-            return null;
+            return null;  // Optionally, return a 404 status if preferred
         }
     }
 
-    // Method to get the all request
+    // Get all requests (without filtering)
     @GetMapping("/all")
     public List<Request> getAllRequest() {
         return requestMapper.getAllRequest();
     }
 
-    // Method to update an existing request
+    // Update an existing request by its ID
     @PutMapping("/{id}/edit")
     public String updateRequest(@PathVariable String id, @RequestBody Request updatedRequest) {
         System.out.println(updatedRequest.getRequestId());
+
+        // Find the existing request by its ID
         Request existingRequest = requestMapper.selectById(id);
+
         if (existingRequest != null) {
+            // Ensure parentId and requestId are not changed
             updatedRequest.setParentId(existingRequest.getParentId());
             updatedRequest.setRequestId(existingRequest.getRequestId());
-            //updatedRequest.setRequestId(id); // Ensure the ID remains the same
+
+            // Update the request in the database
             requestMapper.update(updatedRequest);
             return "Update Successfully";
         } else {
@@ -75,38 +88,46 @@ public class RequestController {
         }
     }
 
+    // Get nearby requests based on the walker's location
     @GetMapping("/nearby-requests")
     public ResponseEntity<List<RequestDto>> getNearbyRequests(
             @RequestParam String walkerId,
             @RequestParam double rangeInKm) {
 
-        // 1. 获取 walker's 地址经纬度
+        // 1. Get the walker's address (latitude, longitude) by their userId
         Address walkerAddress = userService.getUserAddressByUserId(walkerId);
         if (walkerAddress == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        // 2. 在地址表中根据距离筛选出符合要求的地址ID
+        // 2. Find nearby address IDs within the specified range
         List<String> nearbyAddressIds = addressService.getNearbyAddressIds(
                 walkerAddress.getLatitude(),
                 walkerAddress.getLongitude(),
                 rangeInKm
         );
 
-        // 3. 在请求表中找到符合地址ID的请求
-        List<RequestDto> nearbyRequests = requestMapper.findRequestsByAddressIds(nearbyAddressIds, walkerAddress.getLatitude().doubleValue(),
-                walkerAddress.getLongitude().doubleValue());
+        // 3. Find requests that match the nearby address IDs
+        List<RequestDto> nearbyRequests = requestMapper.findRequestsByAddressIds(
+                nearbyAddressIds,
+                walkerAddress.getLatitude().doubleValue(),
+                walkerAddress.getLongitude().doubleValue()
+        );
 
-        // 按距离从近到远排序
+        // Sort the requests by distance (closest first)
         nearbyRequests.sort(Comparator.comparingDouble(RequestDto::getDistance));
 
+        // Return the sorted list of nearby requests
         return ResponseEntity.ok(nearbyRequests);
     }
 
+    // Delete a request by its ID
     @DeleteMapping("/{id}/delete")
     public String deleteRequest(@PathVariable String id) {
         Request request = requestMapper.selectById(id);
+
         if (request != null) {
+            // Delete the request from the database
             requestMapper.deleteById(id);
             return "Delete Successfully";
         } else {
@@ -114,15 +135,5 @@ public class RequestController {
         }
     }
 
-    // 根据 requestId 获取 request 的详细信息
-//    @GetMapping("/{requestId}")
-//    public ResponseEntity<Request> getRequestById(@PathVariable String requestId) {
-//        Request request = requestMapper.selectById(requestId);
-//        if (request != null) {
-//            return ResponseEntity.ok(request);
-//        } else {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-//        }
-//    }
 
 }

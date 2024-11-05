@@ -9,7 +9,6 @@ import java.util.List;
 
 @Mapper
 public interface WalkAgreementMapper extends BaseMapper<WalkAgreement> {
-    // 这里可以添加自定义的查询方法
     @Select("SELECT * FROM WalkAgreements WHERE walker_id = #{walker_id}")
     List<WalkAgreement> findByWalker(String walker_id);
 

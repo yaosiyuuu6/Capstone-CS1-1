@@ -41,7 +41,7 @@ public class WalkAgreementController {
         return walkAgreementMapper.selectList(null);
     }
 
-    // 更新 WalkAgreement
+    // Update WalkAgreement
     @PutMapping("/{id}")
     public String updateWalkAgreement(@PathVariable("id") String agreementId, @RequestBody WalkAgreement walkAgreement) {
         WalkAgreement existingAgreement = walkAgreementMapper.selectById(agreementId);
@@ -53,7 +53,7 @@ public class WalkAgreementController {
         return "WalkAgreement updated successfully!";
     }
 
-    // 删除 WalkAgreement（需要管理员权限）
+    // Delete WalkAgreement
     @DeleteMapping("/{id}")
     public String deleteWalkAgreement(@PathVariable("id") String agreementId, @RequestHeader("userType") String userType) {
         if (!"Admin".equalsIgnoreCase(userType)) {

@@ -13,9 +13,7 @@ import java.util.List;
 
 @Mapper
 public interface ShareRequestMapper extends BaseMapper<ShareRequest> {
-    // 如果需要自定义查询，可以在这里添加方法
 
-    // 自定义查询方法，联接 ShareRequest 和 WalkRequest 表
     @Select("SELECT sr.*, wr.description " +
             "FROM ShareRequest sr " +
             "JOIN WalkRequest wr ON sr.requestId = wr.id " +

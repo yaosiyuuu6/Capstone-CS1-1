@@ -13,73 +13,61 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/address")
 public class AddressController {
+
     @Autowired
     private AddressMapper addressMapper;
 
     @Autowired
     private GeocodingService geocodingService;
 
+    // Endpoint to save a new address
     @PostMapping("/save")
     public String saveAddress(@RequestBody Address address) {
-        // 检查地址是否已存在
-        Address existingAddress = addressMapper.findByDetails(
-                address.getAddressLine1(),
-                address.getAddressLine2(),
-                address.getCity(),
-                address.getState(),
-                address.getPostcode(),
-                address.getCountry()
-        );
 
-        if (existingAddress != null) {
-            // 如果地址已存在，返回现有的 addressId
-            return existingAddress.getAddressId();
-        } else {
-            // 如果地址不存在，反解析地址获取经纬度
-            if (address.getLatitude() == null || address.getLongitude() == null) {
-                // 调用 geocodingService 来获取坐标
-                Coordinates coordinates = geocodingService.reverseGeocode(
-                        address.getAddressLine1() + " " +
-                                address.getAddressLine2() + " " +
-                                address.getCity() + " " +
-                                address.getState() + " " +
-                                address.getPostcode() + " " +
-                                address.getCountry()
-                );
+        // Reverse geocode the address to get latitude and longitude if not provided
+        if (address.getLatitude() == null || address.getLongitude() == null) {
+            // Call geocodingService to get coordinates based on address details
+            Coordinates coordinates = geocodingService.reverseGeocode(
+                    address.getAddressLine1() + " " +
+                            address.getAddressLine2() + " " +
+                            address.getCity() + " " +
+                            address.getState() + " " +
+                            address.getPostcode() + " " +
+                            address.getCountry()
+            );
 
-                // 将获取到的经纬度填入 address 对象中
-                System.out.println(coordinates);
-                address.setLatitude(coordinates.getLatitude());
-                address.setLongitude(coordinates.getLongitude());
-            }
-
-            // 生成一个新的 UUID 作为 addressId
-            address.setAddressId(UUID.randomUUID().toString());
-            // 插入新地址
-            addressMapper.insert(address);
-
-            // 返回新地址的 addressId
-            return address.getAddressId();
+            // Fill the retrieved latitude and longitude into the address object
+            System.out.println(coordinates);
+            address.setLatitude(coordinates.getLatitude());
+            address.setLongitude(coordinates.getLongitude());
         }
+
+        // Generate a new UUID for the addressId
+        address.setAddressId(UUID.randomUUID().toString());
+
+        // Insert the new address into the database
+        addressMapper.insert(address);
+
+        // Return the generated addressId
+        return address.getAddressId();
     }
 
-
-    //Get address by id
+    // Get an address by its ID
     @GetMapping("/{id}")
     public Address getAddressById(@PathVariable("id") String addressId) {
         return addressMapper.selectById(addressId);
     }
 
-    // Update address
+    // Update an existing address
     @PutMapping("/{id}")
     public String updateAddress(@PathVariable("id") String id, @RequestBody Address address) {
-        // 使用路径参数中的 id 查找现有地址
+        // Find the existing address using the ID from the path
         Address existingAddress = addressMapper.selectById(id);
         if (existingAddress == null) {
             return "Address not found.";
         }
 
-        // 更新其他属性
+        // Update the address attributes with new values
         existingAddress.setAddressLine1(address.getAddressLine1());
         existingAddress.setAddressLine2(address.getAddressLine2());
         existingAddress.setCity(address.getCity());
@@ -87,28 +75,25 @@ public class AddressController {
         existingAddress.setPostcode(address.getPostcode());
         existingAddress.setCountry(address.getCountry());
 
-        // 如果坐标未提供，调用地理编码服务来获取坐标
-        if (existingAddress.getLatitude() == null || existingAddress.getLongitude() == null) {
-            Coordinates coordinates = geocodingService.reverseGeocode(
-                    existingAddress.getAddressLine1() + " " +
-                            existingAddress.getAddressLine2() + " " +
-                            existingAddress.getCity() + " " +
-                            existingAddress.getState() + " " +
-                            existingAddress.getPostcode() + " " +
-                            existingAddress.getCountry()
-            );
-            existingAddress.setLatitude(coordinates.getLatitude());
-            existingAddress.setLongitude(coordinates.getLongitude());
-        }
+        // Reverse geocode the updated address to get the new latitude and longitude
+        Coordinates coordinates = geocodingService.reverseGeocode(
+                existingAddress.getAddressLine1() + " " +
+                        existingAddress.getAddressLine2() + " " +
+                        existingAddress.getCity() + " " +
+                        existingAddress.getState() + " " +
+                        existingAddress.getPostcode() + " " +
+                        existingAddress.getCountry()
+        );
+        existingAddress.setLatitude(coordinates.getLatitude());
+        existingAddress.setLongitude(coordinates.getLongitude());
 
-        // 更新地址
+        // Update the address in the database
         addressMapper.updateById(existingAddress);
 
         return "Address updated successfully.";
     }
 
-
-    //Delete address
+    // Delete an address by its ID
     @DeleteMapping("/{id}")
     public String deleteAddress(@PathVariable("id") String addressId) {
         int result = addressMapper.deleteById(addressId);
@@ -119,14 +104,11 @@ public class AddressController {
         }
     }
 
-    //Get all addresses
+    // Get all addresses
     @GetMapping("/all")
     public List<Address> getAllAddresses() {
         return addressMapper.selectList(null);
     }
-
-
-
-
-
 }
+
+

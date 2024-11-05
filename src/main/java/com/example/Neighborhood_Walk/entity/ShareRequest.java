@@ -10,22 +10,22 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("ShareRequest")  // 对应数据库中的表名
+@TableName("ShareRequest")
 public class ShareRequest {
 
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
-    @TableField("requestId")  // 明确指定数据库中的字段名
+    @TableField("requestId")
     private String requestId;
 
-    @TableField("parentId")  // 明确指定数据库中的字段名
+    @TableField("parentId")
     private String parentId;
 
-    @TableField("walkerId")  // 明确指定数据库中的字段名
+    @TableField("walkerId")
     private String walkerId;
 
-    @TableField("shareStatus")  // 明确指定数据库中的字段名
+    @TableField("shareStatus")
     private String shareStatus;
 
     @TableField("createdAt")

@@ -26,27 +26,33 @@ public class LocationWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        // Extract the payload from the received WebSocket message
         String payload = message.getPayload();
         logger.info("Received WebSocket message: {}", payload);
 
+        // Deserialize the payload into a LocationData object
         LocationData locationData = objectMapper.readValue(payload, LocationData.class);
 
+        // Check if redisTemplate is properly configured
         if (redisTemplate == null) {
             logger.error("redisTemplate is null - Redis is not configured properly.");
         } else {
-
-            // 使用有序集合（Sorted Set）将位置信息存储在 Redis 中，分数为时间戳
+            // Create a Redis key using walkerId and agreementId
             String key = "location:" + locationData.getWalkerId() + ":" + locationData.getAgreementId();
-            double score = System.currentTimeMillis(); // 当前时间戳作为分数
 
-            // 将位置信息以 JSON 字符串存储
+            // Use the current timestamp as the score in a Redis sorted set
+            double score = System.currentTimeMillis();
+
+            // Serialize the LocationData object into a JSON string
             String locationJson = objectMapper.writeValueAsString(locationData);
 
-            // 使用 ZSet 存储数据
+            // Store the location data in Redis using a ZSet (Sorted Set) with the timestamp as the score
             redisTemplate.opsForZSet().add(key, locationJson, score);
             logger.info("Location data stored in Redis Sorted Set for walkerId {}", locationData.getWalkerId());
         }
 
-        session.sendMessage(new TextMessage("位置更新成功: " + locationData));
+        // Send a response back to the client acknowledging the location update
+        session.sendMessage(new TextMessage("Location updated successfully: " + locationData));
     }
+
 }

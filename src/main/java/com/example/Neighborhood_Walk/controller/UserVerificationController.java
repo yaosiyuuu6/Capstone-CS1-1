@@ -360,6 +360,7 @@ public class UserVerificationController {
     @PostMapping("/verify-identity")
     public ResponseEntity<String> verifyIdentity(@RequestParam String userId) {
         // 查询是否存在相关的身份验证记录
+        // Check if there is an existing identity verification record
         UserVerification existingVerification = userVerificationMapper.selectOne(
                 new QueryWrapper<UserVerification>()
                         .eq("user_id", userId)
@@ -368,6 +369,7 @@ public class UserVerificationController {
 
         if (existingVerification == null) {
             // 插入新的验证记录
+            // Insert a new verification record
             UserVerification newVerification = new UserVerification();
             newVerification.setVerificationId(UUID.randomUUID().toString());
             newVerification.setUserId(userId);
@@ -379,6 +381,7 @@ public class UserVerificationController {
             userVerificationMapper.insert(newVerification);
         } else {
             // 更新已有的验证记录
+            // Update the existing verification record
             existingVerification.setVerificationStatus("Verified");
             existingVerification.setVerificationDate(Timestamp.valueOf(LocalDateTime.now()));
             existingVerification.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));

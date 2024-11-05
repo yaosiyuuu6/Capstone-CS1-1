@@ -22,11 +22,11 @@ public class SmsService {
     public String sendSms(String phoneNumber, String message) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("APPKEY", apiKey);  // 使用APPKEY而不是Authorization
+        headers.set("APPKEY", apiKey);
 
         Map<String, String> body = new HashMap<>();
-        body.put("numbers", phoneNumber);  // 确保使用正确的参数名称
-        body.put("sms_text", message);     // 使用sms_text而不是message
+        body.put("numbers", phoneNumber);
+        body.put("sms_text", message);
 
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);

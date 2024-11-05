@@ -10,16 +10,16 @@ import lombok.Data;
 public class Children {
 
     @TableId(type = IdType.ASSIGN_UUID)
-    private String childrenId;  // 主键ID
+    private String childrenId;
 
-    private String parentsId;   // 父母ID
+    private String parentsId;
 
-    private String name;        // 孩子名字
+    private String name;
 
-    private String gender;      // 性别 ('male', 'female', 'prefer not to say')
+    private String gender;
 
-    private Integer age;        // 年龄
+    private Integer age;
 
-    private String description; // 描述
+    private String description;
 }
 

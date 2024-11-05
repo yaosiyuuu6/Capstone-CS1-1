@@ -20,9 +20,8 @@ public class GeocodingService {
         this.restTemplate = restTemplate;
     }
 
-    // 将地址转换为经纬度
 
-
+    // covert address to coordinates
     public Coordinates reverseGeocode(String address) {
         try {
             String url = String.format(
@@ -42,7 +41,6 @@ public class GeocodingService {
                     .getJSONObject("geometry")
                     .getJSONObject("location");
 
-            // 使用 getDouble() 获取值，然后转换为 BigDecimal
             BigDecimal latitude = BigDecimal.valueOf(location.getDouble("lat"));
             BigDecimal longitude = BigDecimal.valueOf(location.getDouble("lng"));
 

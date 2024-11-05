@@ -12,28 +12,27 @@ public class WalkerProfile {
     private String walkerId;
 
     // 用于存储是否具有和儿童一起工作的许可
+    // Working with Children Check
     private String workingWithChildrenCheck;
 
     // Schedule type: Weekly or One-off
-    private String scheduleType;  // 用于区分使用 availableDatesTimes 还是 availableDate + timePeriod
+    private String scheduleType;
 
-    // JSON 字段，存储详细的可用时间段
     private String availableDatesTimes;
 
-    // 技能描述
+    // skill
     private String skills;
 
-    // One-off 类型时使用的日期
+    // One-off date
     private Date availableDate;
 
-    // TimePeriod 枚举类型，用于表示 Morning, Afternoon, Evening, Night
+    // TimePeriod
     public enum TimePeriod {
         Morning, Afternoon, Evening, Night;
     }
 
-    private String timePeriod;  // One-off 类型时使用的时间段
+    private String timePeriod;
 
-    // ScheduleType 枚举，用于表示是 Weekly 还是 One-off
 
     // Getters and Setters
     public String getWalkerId() {

@@ -4,15 +4,15 @@ import java.time.LocalDateTime;
 
 public class ShareLocation {
 
-    private Long recordId;          // 记录 ID 自增 主键
-    private String agreementId;   // UUID 合约 ID
-    private String walkerId;        // Walker 用户 ID
-    private String trackingData;  // JSON 格式的位置信息
-    private LocalDateTime startTime;   // 位置共享的开始时间
-    private LocalDateTime endTime;     // 位置共享的结束时间
-    private LocalDateTime updatedAt;   // 最后更新时间
+    private Long recordId;
+    private String agreementId;
+    private String walkerId;
+    private String trackingData;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private LocalDateTime updatedAt;
 
-    // Getters 和 Setters
+    // Getters and Setters
     public Long getRecordId() {
         return recordId;
     }
@@ -21,7 +21,6 @@ public class ShareLocation {
         this.recordId = recordId;
     }
 
-    // Getters 和 Setters
     public String getAgreementId() {
         return agreementId;
     }

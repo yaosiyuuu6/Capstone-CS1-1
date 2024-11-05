@@ -222,62 +222,59 @@ public class UserController {
             @RequestParam String userId,
             @RequestParam double rangeInKm) {
 
-        // 1. 获取用户的地址经纬度
+        // 1. Get the latitude and longitude of the user's address
         Address parentAddress = userService.getUserAddressByUserId(userId);
         if (parentAddress == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        // 2. 在地址表中根据距离筛选出符合要求的地址ID
+        // 2. Retrieve the IDs of addresses within the specified range (rangeInKm)
         List<String> nearbyAddressIds = addressService.getNearbyAddressIds(
                 parentAddress.getLatitude(),
                 parentAddress.getLongitude(),
                 rangeInKm
         );
 
+        // 3. Find users who are walkers and whose address matches the nearby addresses
+        List<UserDto> nearbyWalkers = userMapper.findWalkersByAddressIds(nearbyAddressIds,
+                parentAddress.getLatitude().doubleValue(), parentAddress.getLongitude().doubleValue());
 
-        // 3. 在用户表中找到类型为walker并且匹配地址ID的用户
-        List<UserDto> nearbyWalkers = userMapper.findWalkersByAddressIds(nearbyAddressIds, parentAddress.getLatitude().doubleValue(),
-                parentAddress.getLongitude().doubleValue());
-
-
-        // 按距离从近到远排序
+        // Sort the walkers by distance from nearest to farthest
         nearbyWalkers.sort(Comparator.comparingDouble(UserDto::getDistance));
 
         return ResponseEntity.ok(nearbyWalkers);
     }
+
 
     @GetMapping("/nearby-parents")
     public ResponseEntity<List<UserDto>> getNearbyParents(
             @RequestParam String userId,
             @RequestParam double rangeInKm) {
 
-        // 1. 获取用户的地址经纬度
+        // 1. Get the latitude and longitude of the user's address
         Address walkerAddress = userService.getUserAddressByUserId(userId);
         if (walkerAddress == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        // 2. 在地址表中根据距离筛选出符合要求的地址ID
+        // 2. Retrieve the IDs of addresses within the specified range (rangeInKm)
         List<String> nearbyAddressIds = addressService.getNearbyAddressIds(
                 walkerAddress.getLatitude(),
                 walkerAddress.getLongitude(),
                 rangeInKm
         );
 
+        // 3. Find users who are parents and whose address matches the nearby addresses
+        List<UserDto> nearbyParents = userMapper.findParentsByAddressIds(nearbyAddressIds,
+                walkerAddress.getLatitude().doubleValue(), walkerAddress.getLongitude().doubleValue());
 
-        // 3. 在用户表中找到类型为walker并且匹配地址ID的用户
-        List<UserDto> nearbyParents = userMapper.findParentsByAddressIds(nearbyAddressIds, walkerAddress.getLatitude().doubleValue(),
-                walkerAddress.getLongitude().doubleValue());
-
-
-        // 按距离从近到远排序
+        // Sort the parents by distance from nearest to farthest
         nearbyParents.sort(Comparator.comparingDouble(UserDto::getDistance));
 
         return ResponseEntity.ok(nearbyParents);
     }
 
-    // 更新用户密码的 API
+
     @PutMapping("/{userId}/password")
     public ResponseEntity<String> updatePassword(
             @PathVariable String userId,
@@ -286,18 +283,18 @@ public class UserController {
         String oldPassword = request.get("oldPassword");
         String newPassword = request.get("newPassword");
 
-        // 根据 userId 查找用户
+        // Find the user by userId
         User user = userMapper.selectById(userId);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
         }
 
-        // 验证旧密码是否正确
+        // Check if the old password matches
         if (!user.getPassword().equals(oldPassword)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Old password is incorrect.");
         }
 
-        // 更新密码
+        // Update the password
         user.setPassword(newPassword);
         int rows = userMapper.updateById(user);
         if (rows > 0) {
@@ -307,19 +304,20 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update password.");
     }
 
-    //获取头像URL
+
+    //get photo url
     @GetMapping("/getPhotoUrl")
     public String getPhotoUrl(@RequestParam String userId) {
         return userPhotoMapper.findPhotosByUserId(userId).get(0).getPhotoUrl();
     }
 
-    //初始化头像URL
+    //initialize photo url
     @PostMapping("/createUserPhoto")
     public String postPhotoUrl(@RequestParam String userId) {
         UserPhoto userPhoto = new UserPhoto();
         userPhoto.setPhotoId(UUID.randomUUID().toString());
         userPhoto.setUserId(userId);
-        userPhoto.setPhotoUrl("http://44.200.151.81:9000/avatars/1729771636619_1239a819-0172-4113-a3af-3e7350fa9f29");
+        userPhoto.setPhotoUrl("https://www.communea.net:9001/avatars/1729771636619_1239a819-0172-4113-a3af-3e7350fa9f29");
         userPhotoMapper.insertUserPhoto(userPhoto);
         return "Photo URL updated successfully!";
     }

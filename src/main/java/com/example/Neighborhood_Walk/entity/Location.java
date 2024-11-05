@@ -4,12 +4,12 @@ import java.sql.Timestamp;
 
 public class Location {
 
-    private Long locationId;   // 自增主键
-    private Long userId;       // 如果需要关联用户，可以使用此字段
+    private Long locationId;
+    private Long userId;
     private double latitude;
     private double longitude;
     private double accuracy;
-    private Timestamp locationTime;   // 获取位置的时间
+    private Timestamp locationTime;
 
     // Getters and Setters
     public Long getLocationId() {

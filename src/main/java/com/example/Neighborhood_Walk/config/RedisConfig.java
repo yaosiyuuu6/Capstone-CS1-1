@@ -15,14 +15,18 @@ public class RedisConfig {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory);
 
-        // 使用 StringRedisSerializer 来序列化 key
+        // Use StringRedisSerializer to serialize the key as a String.
         template.setKeySerializer(new StringRedisSerializer());
 
-        // 使用 GenericJackson2JsonRedisSerializer 来序列化 value，能够处理多种数据类型
+        // Use GenericJackson2JsonRedisSerializer to serialize the value.
+        // This serializer can handle various data types and convert them to JSON.
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
 
-        // 使用 StringRedisSerializer 来序列化 Hash key 和 Hash value
+        // Use StringRedisSerializer to serialize the hash key as a String.
         template.setHashKeySerializer(new StringRedisSerializer());
+
+        // Use GenericJackson2JsonRedisSerializer to serialize the hash value.
+        // This ensures that complex objects inside hashes are serialized as JSON.
         template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
 
         return template;
@@ -32,10 +36,17 @@ public class RedisConfig {
     public RedisTemplate<String, String> stringRedisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, String> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
+
+        // Use StringRedisSerializer to serialize the key as a String.
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new StringRedisSerializer());  // 设置为 String 序列化器
+
+        // Use StringRedisSerializer to serialize the value as a String.
+        // This is useful when storing simple key-value pairs of strings.
+        template.setValueSerializer(new StringRedisSerializer());
+
         return template;
     }
+
 
 
 

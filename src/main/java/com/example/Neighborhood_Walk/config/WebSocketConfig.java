@@ -19,7 +19,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     private final RedisTemplate<String, String> stringRedisTemplate;
     private final ShareLocationService shareLocationService;
 
-    // 构造函数注入
+    // Constructor injection to initialize dependencies
     public WebSocketConfig(@Qualifier("redisTemplate") RedisTemplate<String, Object> redisTemplate,
                            @Qualifier("stringRedisTemplate") RedisTemplate<String, String> stringRedisTemplate,
                            ShareLocationService shareLocationService) {
@@ -27,26 +27,16 @@ public class WebSocketConfig implements WebSocketConfigurer {
         this.stringRedisTemplate = stringRedisTemplate;
         this.shareLocationService = shareLocationService;
     }
-// 注入 RedisTemplate
 
-//    @Override
-//    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-//        // Walker 端 WebSocket
-//        registry.addHandler(new LocationWebSocketHandler(redisTemplate), "/ws/walker")
-//                .setAllowedOrigins("*");
-//
-//        // Parent 端 WebSocket
-//        registry.addHandler(new ParentLocationWebSocketHandler(redisTemplate), "/ws/parent")
-//                .setAllowedOrigins("*");
-//    }
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        // Walker 端 WebSocket
+        // WebSocket handler for Walker (sender) side
         registry.addHandler(new LocationWebSocketHandler(redisTemplate), "/ws/walker")
-                .setAllowedOrigins("*");
+                .setAllowedOrigins("*");  // Allow cross-origin requests from any domain
 
-        // Parent 端 WebSocket
+        // WebSocket handler for Parent (receiver) side
         registry.addHandler(new ParentLocationWebSocketHandler(shareLocationService, stringRedisTemplate), "/ws/parent")
-                .setAllowedOrigins("*");
+                .setAllowedOrigins("*");  // Allow cross-origin requests from any domain
     }
+
 }

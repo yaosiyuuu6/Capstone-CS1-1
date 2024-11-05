@@ -15,9 +15,10 @@ public class ParentsAddressController {
     @Autowired
     private ParentsAddressMapper parentsAddressMapper;
 
-    // 创建新的 ParentsAddress 记录
+    // Create a new ParentsAddress record
     @PostMapping("/create")
     public String createParentsAddress(@RequestBody ParentsAddress parentsAddress) {
+        // Insert the new ParentsAddress record into the database
         int result = parentsAddressMapper.insert(parentsAddress);
         if (result > 0) {
             return "ParentsAddress created successfully!";
@@ -26,17 +27,21 @@ public class ParentsAddressController {
         }
     }
 
-    // 根据 userId 获取 ParentsAddress 记录
+    // Get ParentsAddress records by userId
     @GetMapping("/{userId}")
     public List<ParentsAddress> getParentsAddressByUserId(@PathVariable String userId) {
+        // Create a QueryWrapper to filter by userId
         QueryWrapper<ParentsAddress> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_Id", userId);
+
+        // Retrieve the list of ParentsAddress records that match the userId
         return parentsAddressMapper.selectList(queryWrapper);
     }
 
-    // 更新 ParentsAddress 记录
+    // Update an existing ParentsAddress record
     @PutMapping("/update")
     public String updateParentsAddress(@RequestBody ParentsAddress parentsAddress) {
+        // Update the existing ParentsAddress record in the database
         int result = parentsAddressMapper.updateById(parentsAddress);
         if (result > 0) {
             return "ParentsAddress updated successfully!";
@@ -45,11 +50,14 @@ public class ParentsAddressController {
         }
     }
 
-    // 删除 ParentsAddress 记录
+    // Delete a ParentsAddress record by userId and addressId
     @DeleteMapping("/delete/{userId}/{addressId}")
     public String deleteParentsAddress(@PathVariable String userId, @PathVariable String addressId) {
+        // Create a QueryWrapper to filter by both userId and addressId
         QueryWrapper<ParentsAddress> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId).eq("address_id", addressId);
+
+        // Delete the ParentsAddress record matching both userId and addressId
         int result = parentsAddressMapper.delete(queryWrapper);
         if (result > 0) {
             return "ParentsAddress deleted successfully!";
@@ -57,4 +65,5 @@ public class ParentsAddressController {
             return "Failed to delete ParentsAddress.";
         }
     }
+
 }

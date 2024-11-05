@@ -20,7 +20,6 @@ public class Address {
     private BigDecimal latitude;   // 添加纬度字段
     private BigDecimal longitude;  // 添加经度字段
 
-    // 省略其他getter、setter和构造方法
 
     public BigDecimal getLatitude() {
         return latitude;

@@ -9,7 +9,6 @@ import java.util.List;
 
 @Mapper
 public interface ApplicationMapper extends BaseMapper<Application> {
-    // 你可以在这里添加自定义查询方法
     @Select("SELECT * FROM WalkerApplications WHERE walker_id = #{walker_id}")
     List<Application> findByWalker(String walker_id);
 

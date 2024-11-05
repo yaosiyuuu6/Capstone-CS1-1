@@ -14,31 +14,39 @@ public class ShareLocationController {
     @Autowired
     private ShareLocationService shareLocationService;
 
-    // 开始位置共享
+    // Start location sharing
     @PostMapping("/start/{agreementId}")
     public String startLocationSharing(@PathVariable String agreementId, @RequestBody ShareLocation shareLocation) {
-        // 设置 agreementId，确保区分不同的共享
+        // Set the agreementId to distinguish between different sharing sessions
         shareLocation.setAgreementId(agreementId);
 
-        // 保存到 Redis 或其他存储介质
+        // Save the location data to Redis or another storage medium
         shareLocationService.saveLocation(shareLocation);
 
         return "Location sharing started.";
     }
 
-    // 停止位置共享
+    // Stop location sharing
     @PostMapping("/stop/{agreementId}")
     public String stopLocationSharing(@PathVariable String agreementId) {
+        // Retrieve the current location sharing session by agreementId
         ShareLocation shareLocation = shareLocationService.getLocationByAgreementId(agreementId);
+
+        // Set the end time of the location sharing
         shareLocation.setEndTime(LocalDateTime.now());
+
+        // Save the updated location data back to the storage
         shareLocationService.saveLocation(shareLocation);
+
         return "Location sharing stopped.";
     }
 
-    // 获取 Walker 的实时位置
+    // Get the current location of the Walker
     @GetMapping("/current/{agreementId}")
     public ShareLocation getCurrentLocation(@PathVariable String agreementId) {
+        // Retrieve the latest location information for the given agreementId
         return shareLocationService.getLocationByAgreementId(agreementId);
     }
+
 }
 

@@ -11,7 +11,7 @@ public class RequestDto {
     private String recurrence;
     private String status;
     private String description;
-    private double distance; // walker 与 request 的距离
+    private double distance;
 
     // Getters and Setters
     public String getRequestId() {

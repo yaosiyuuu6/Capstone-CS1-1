@@ -5,7 +5,7 @@ public class ShareRequestWithDescription {
     private String parentId;
     private String walkerId;
     private String shareStatus;
-    private String description;  // 来自 WalkRequest 表的字段
+    private String description;
 
     // Getters and setters
     // 省略其他字段的 getter 和 setter 方法

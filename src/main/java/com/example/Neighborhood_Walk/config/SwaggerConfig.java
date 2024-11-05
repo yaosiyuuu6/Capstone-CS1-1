@@ -12,22 +12,26 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig {
-//        swagger2相关bean
-    public Docket createRestApi(){
+    // Bean related to Swagger2 configuration
+    public Docket createRestApi() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com")) //com包下所有api由swagger2管理
-                .paths(PathSelectors.any()).build();
-    }
-//    api文档页面显示信息
-    private ApiInfo apiInfo(){
-        return new ApiInfoBuilder()
-                .title("ProjectAPI")
-                .description("CS1-1 Project")
-                .version("1.0")
+                // Manage all APIs under the 'com' package with Swagger2
+                .apis(RequestHandlerSelectors.basePackage("com"))
+                .paths(PathSelectors.any())
                 .build();
     }
+
+    // Information displayed on the Swagger API documentation page
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder()
+                .title("ProjectAPI")  // Title for the API documentation
+                .description("CS1-1 Project")  // Description of the project for the documentation page
+                .version("1.0")  // Version number for the API documentation
+                .build();
+    }
+
 
 }
 

@@ -8,13 +8,13 @@ public class WalkerProfileDTO {
 
     private String walkerId;
 
-    private Map<String, Object> availableDatesTimes;  // 用于 Weekly 类型
+    private Map<String, Object> availableDatesTimes;  // for Weekly
 
     private String skills;
 
-    private Date availableDate;  // 用于 One-off 类型
+    private Date availableDate;  // for One-off
 
-    private String timePeriod;  // 用于 One-off 类型
+    private String timePeriod;  // for One-off
 
     // Getters and Setters
     public String getWalkerId() {

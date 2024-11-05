@@ -8,7 +8,6 @@ public class LocationData {
     private double accuracy;
     private String timestamp;
 
-    // Getters 和 Setters
     public String getWalkerId() {
         return walkerId;
     }
